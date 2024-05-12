@@ -2,9 +2,9 @@ cd .\web
 npm install
 npm run build
 cd ..\
-rmdir /s/q .\md\web\
+Remove-Item -Path "md\web\" -Recurse -Force
 xcopy /s/e .\web\dist\ .\md\web\
 cd .\md
 go build
-echo md build finished
+echo '编译完成'
 pause

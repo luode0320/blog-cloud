@@ -7,4 +7,4 @@ rm -rf ./md/web
 cp ./web/dist -r ./md/web
 cd ./md
 go build
-echo md build finished
+echo '编译完成'
