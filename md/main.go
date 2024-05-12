@@ -22,7 +22,7 @@ func init() {
 	flag.StringVar(&common.Port, "p", "9900", "监听端口")
 	flag.StringVar(&common.LogPath, "log", "./logs", "日志目录，存放近30天的日志")
 	flag.StringVar(&common.DataPath, "data", "./data", "数据目录，存放数据库文件和图片")
-	flag.BoolVar(&common.Register, "reg", true, "是否允许注册（即使禁止注册，在没有任何用户的情况时仍可注册）")
+	flag.BoolVar(&common.Register, "reg", false, "是否允许注册（即使禁止注册，在没有任何用户的情况时仍可注册）")
 	flag.StringVar(&common.PostgresHost, "pg_host", "", "postgres主机地址")
 	flag.StringVar(&common.PostgresPort, "pg_port", "", "postgres端口")
 	flag.StringVar(&common.PostgresUser, "pg_user", "", "postgres用户")
