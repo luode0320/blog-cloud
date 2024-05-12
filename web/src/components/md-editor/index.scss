@@ -1,0 +1,30 @@
+.md-editor-catalog-active > span,
+.md-editor-catalog-link span:hover {
+  color: #2196f3 !important;
+}
+
+.md-preview_component {
+  display: flex;
+  .preview-view {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    .md-editor-preview-wrapper {
+      padding: 0 20px;
+      max-width: 1200px;
+    }
+  }
+  .catalog-view {
+    width: 200px;
+    background-color: #fcfcfc;
+  }
+}
+
+.md-editor-toolbar {
+  .icon-download {
+    width: 20px;
+    height: 20px;
+    margin: 2px;
+  }
+}

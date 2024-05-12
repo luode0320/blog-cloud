@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "ROOT",
+			"path": "./"
+		},
+		{
+			"name": "md",
+			"path": "./md"
+		},
+		{
+			"name": "web",
+			"path": "./web"
+		},
+	],
+	"settings": {}
+}

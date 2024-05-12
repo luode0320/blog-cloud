@@ -1,0 +1,19 @@
+.v-codemirror {
+  .cm-editor {
+    font-size: 14px;
+    height: 100%;
+    border: 1px solid #e6e6e6;
+    border-radius: 6px;
+    overflow: hidden;
+    outline: none;
+    .cm-scroller {
+      font-family: source-code-pro, Menlo, Monaco, Consolas, Courier New, monospace;
+    }
+  }
+}
+
+.v-codemirror.no-radius {
+  .cm-editor {
+    border-radius: 0;
+  }
+}

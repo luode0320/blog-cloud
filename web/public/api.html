@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.ico" />
+    <title>接口文档</title>
+    <script src="/static/stoplight-elements/web-components.min.js"></script>
+    <link rel="stylesheet" href="/static/stoplight-elements/styles.min.css" />
+    <style>
+      body {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+      #mosaic-provider-react-aria-0-1
+        > div
+        > div
+        > div
+        > div.sl-flex
+        > div.sl-flex.sl-overflow-y-auto.sl-flex-col.sl-sticky.sl-inset-y-0.sl-pt-8.sl-bg-canvas-100.sl-border-r
+        > a {
+        display: none;
+      }
+      #mosaic-provider-react-aria-0-1
+        > div
+        > div
+        > div
+        > div.sl-flex
+        > div.sl-flex.sl-overflow-y-auto.sl-flex-col.sl-sticky.sl-inset-y-0.sl-pt-8.sl-bg-canvas-100.sl-border-r {
+        padding-top: 10px;
+      }
+      #mosaic-provider-react-aria-0-1 > div > div > div > div.sl-overflow-y-auto.sl-flex-1.sl-w-full.sl-px-24.sl-bg-canvas {
+        min-width: 800px;
+      }
+      #mosaic-provider-react-aria-0-1 > div > div > div {
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      var child;
+      window.addEventListener("message", function (e) {
+        var data = JSON.parse(e.data);
+        if (data.type === "content") {
+          if (child) {
+            document.body.removeChild(child);
+          }
+          child = document.createElement("elements-api");
+          child.setAttribute("router", "hash");
+          child.setAttribute("hideExport", true);
+          child.setAttribute("hideSchemas", true);
+          child.setAttribute("apiDescriptionDocument", data.val);
+          document.body.appendChild(child);
+        }
+      });
+
+      window.addEventListener("popstate", function (e) {
+        var params = document.location.href.split("#");
+        window.parent.postMessage(JSON.stringify({ type: "url", val: params[params.length - 1] }), "*");
+      });
+    </script>
+  </body>
+</html>
