@@ -88,7 +88,7 @@ ON "t_user" (
 // 初始化数据库连接
 func InitDB() error {
 	var err error
-	if common.PostgresHost != "" && common.PostgresPort != "" && common.PostgresUser != "" && common.PostgresPassword != "" && common.PostgresDB != "" {
+	if common.PostgresPort != "" && common.PostgresUser != "" && common.PostgresPassword != "" && common.PostgresDB != "" {
 		err = initPostgres()
 	} else {
 		err = initSqlite()
@@ -120,7 +120,7 @@ func initSqlite() error {
 	}
 	DbW.SetMaxOpenConns(1)
 
-	Log.Info("已连接sqlite")
+	Log.Info("成功连接sqlite")
 	return nil
 }
 
@@ -135,6 +135,6 @@ func initPostgres() error {
 
 	DbW = Db
 
-	Log.Info("已连接postgres")
+	Log.Info("成功连接postgres")
 	return nil
 }

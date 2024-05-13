@@ -61,6 +61,8 @@ func SignUp(user entity.User) {
 	if err != nil {
 		panic(common.NewErr("注册失败", err))
 	}
+
+	middleware.Log.Infof("注册用户成功: {%s}", user.Name)
 }
 
 // 登录
@@ -72,17 +74,17 @@ func SignIn(user entity.User) common.TokenResult {
 	}
 
 	// 校验登录次数
-	checkSignInTimes(user.Name)
+	// checkSignInTimes(user.Name)
 
 	// 根据用户名查询用户
 	userResult, err := dao.UserGetByName(middleware.Db, user.Name)
 	if err != nil {
-		panic(common.NewErr("用户名或密码错误", err))
+		panic(common.NewErr("用户不存在", err))
 	}
 
 	// 匹配密码：sha256(id + password)
 	if util.EncryptSHA256([]byte(userResult.Id+user.Password)) != userResult.Password {
-		panic(common.NewError("用户名或密码错误"))
+		panic(common.NewError("密码错误"))
 	}
 
 	// 生成token
@@ -98,8 +100,9 @@ func SignIn(user entity.User) common.TokenResult {
 	// 缓存token
 	cache2go.Cache(common.AccessTokenCache).Add(tokenResult.AccessToken, AccessTokenExpire, &tokenCache)
 	cache2go.Cache(common.RefreshTokenCache).Add(tokenResult.RefreshToken, RefreshTokenExpire, &tokenCache)
-	cache2go.Cache(common.SignInTimesCache).Delete(user.Name)
+	// cache2go.Cache(common.SignInTimesCache).Delete(user.Name)
 
+	middleware.Log.Infof("用户登录: {%s}", tokenResult.Name)
 	return tokenResult
 }
 
@@ -147,22 +150,30 @@ func TokenRefresh(refreshToken string) common.TokenResult {
 
 // 校验登录次数，如已超出则抛出异常
 func checkSignInTimes(name string) {
+	// 从缓存中获取登录次数信息
 	cache := cache2go.Cache(common.SignInTimesCache)
 	signInTimes, err := cache.Value(name)
 	times := 1
 	expireSecond := int64(0)
+
+	// 如果缓存中不存在该用户的登录次数信息，则添加该用户信息并设置过期时间为1440分钟
 	if err != nil {
-		cache.Add(name, time.Minute*5, true)
+		cache.Add(name, time.Minute*1440, true)
 	} else {
+		// 计算距离上次登录的时间差
 		expireSecond = 300 - (time.Now().Unix() - signInTimes.CreatedOn().Unix())
-		// 有时过期后缓存不会立即删除，手动重置次数
+
+		// 如果过期时间小于等于0，说明缓存已过期，手动重置登录次数并设置过期时间为5分钟
 		if expireSecond <= 0 {
-			cache.Add(name, time.Minute*5, true)
+			cache.Add(name, time.Minute*1440, true)
 		} else {
+			// 如果缓存未过期，则更新登录次数
 			times = int(signInTimes.AccessCount()) + 1
 		}
 	}
-	if times > 5 {
-		panic(common.NewError(fmt.Sprintf("登录次数已达上限，请于%v分钟后再试", (expireSecond/60 + 1))))
+
+	// 如果登录次数超过50次，则抛出异常
+	if times > 50 {
+		panic(common.NewError(fmt.Sprintf("登录次数已达上限，请于%v分钟后再试", expireSecond/60+1)))
 	}
 }

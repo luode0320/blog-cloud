@@ -19,15 +19,19 @@ func DocumentAdd(document entity.Document) entity.Document {
 	if document.Name == "" {
 		panic(common.NewError("文档名称不可为空"))
 	}
+
 	if util.StringLength(document.Name) > 1000 {
 		panic(common.NewError("文档名称过长，请小于1000个字符"))
 	}
+
 	if util.StringLength(document.Content) > 10000000 {
 		panic(common.NewError("文档内容过多，请小于1000万个字符"))
 	}
+
 	if document.Type != entity.DocMd && document.Type != entity.DocOpenApi {
 		panic(common.NewError("不支持的文档类型"))
 	}
+
 	document.Id = util.SnowflakeString()
 	document.CreateTime = time.Now().UnixMilli()
 	document.UpdateTime = time.Now().UnixMilli()
@@ -41,6 +45,7 @@ func DocumentAdd(document entity.Document) entity.Document {
 		panic(common.NewErr("添加失败", err))
 	}
 
+	middleware.Log.Infof("添加%s文档成功: {%s}", document.Type, document.Name)
 	return document
 }
 
@@ -53,9 +58,11 @@ func DocumentUpdate(document entity.Document) {
 	if document.Name == "" {
 		panic(common.NewError("文档名称不可为空"))
 	}
+
 	if util.StringLength(document.Name) > 1000 {
 		panic(common.NewError("文档名称过长，请小于1000个字符"))
 	}
+
 	err := dao.DocumentUpdate(tx, document)
 	if err != nil {
 		panic(common.NewErr("更新失败", err))
@@ -65,6 +72,8 @@ func DocumentUpdate(document entity.Document) {
 	if err != nil {
 		panic(common.NewErr("更新失败", err))
 	}
+
+	middleware.Log.Infof("成功修改%s文档基础信息: {%s}", document.Type, document.Name)
 }
 
 // 修改文档内容
@@ -75,6 +84,7 @@ func DocumentUpdateContent(document entity.Document) entity.Document {
 	if util.StringLength(document.Content) > 10000000 {
 		panic(common.NewError("文档内容过多，请小于1000万个字符"))
 	}
+
 	document.UpdateTime = time.Now().UnixMilli()
 	err := dao.DocumentUpdateContent(tx, document)
 	if err != nil {
@@ -86,6 +96,7 @@ func DocumentUpdateContent(document entity.Document) entity.Document {
 		panic(common.NewErr("更新失败", err))
 	}
 
+	middleware.Log.Infof("成功修改%s文档内容: {%s}", document.Type, document.Name)
 	return DocumentGet(document.Id, document.UserId)
 }
 
@@ -103,6 +114,8 @@ func DocumentDelete(id, userId string) {
 	if err != nil {
 		panic(common.NewErr("删除失败", err))
 	}
+
+	middleware.Log.Infof("成功删除文档: {%s}", id)
 }
 
 // 查询文档列表

@@ -15,7 +15,7 @@ func BookAdd(tx *sqlx.Tx, book entity.Book) error {
 	return err
 }
 
-// 修改文集
+// 修改文集名称
 func BookUpdate(tx *sqlx.Tx, book entity.Book) error {
 	sql := `update t_book set name=:name where id=:id and user_id=:user_id`
 	_, err := tx.NamedExec(sql, book)

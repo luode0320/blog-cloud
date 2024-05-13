@@ -30,6 +30,7 @@ func RSAGenerateKey(ctx iris.Context) {
 	if err != nil {
 		panic(common.NewErr("RSA密钥对生成失败", err))
 	}
+
 	ctx.JSON(common.NewSuccessData("RSA密钥对生成成功", rsaResult{privateKey, publicKey}))
 }
 
@@ -40,13 +41,16 @@ func RSAEncrypt(ctx iris.Context) {
 	if rsaCondition.Message == "" {
 		panic(common.NewError("加密内容不可为空"))
 	}
+
 	if rsaCondition.PublicKey == "" {
 		panic(common.NewError("公钥不可为空"))
 	}
+
 	result, err := util.EncryptRSA(rsaCondition.Message, rsaCondition.PublicKey)
 	if err != nil {
 		panic(common.NewErr("公钥加密失败", err))
 	}
+
 	ctx.JSON(common.NewSuccessData("公钥加密成功", result))
 }
 
@@ -57,13 +61,16 @@ func RSADecrypt(ctx iris.Context) {
 	if rsaCondition.Message == "" {
 		panic(common.NewError("解密内容不可为空"))
 	}
+
 	if rsaCondition.PrivateKey == "" {
 		panic(common.NewError("私钥不可为空"))
 	}
+
 	result, err := util.DecryptRSA(rsaCondition.Message, rsaCondition.PrivateKey, rsaCondition.IsPKCS8)
 	if err != nil {
 		panic(common.NewErr("私钥解密失败", err))
 	}
+
 	ctx.JSON(common.NewSuccessData("私钥解密成功", result))
 }
 
@@ -74,16 +81,20 @@ func RSASign(ctx iris.Context) {
 	if rsaCondition.Message == "" {
 		panic(common.NewError("签名内容不可为空"))
 	}
+
 	if rsaCondition.PrivateKey == "" {
 		panic(common.NewError("私钥不可为空"))
 	}
+
 	if rsaCondition.SignType == "" {
 		panic(common.NewError("签名方式不可为空"))
 	}
+
 	result, err := util.SignRSA(rsaCondition.Message, rsaCondition.PrivateKey, rsaCondition.SignType, rsaCondition.IsPKCS8)
 	if err != nil {
 		panic(common.NewErr("私钥签名失败", err))
 	}
+
 	ctx.JSON(common.NewSuccessData("私钥签名成功", result))
 }
 
@@ -94,15 +105,19 @@ func RSAVerify(ctx iris.Context) {
 	if rsaCondition.Message == "" {
 		panic(common.NewError("验签内容不可为空"))
 	}
+
 	if rsaCondition.PublicKey == "" {
 		panic(common.NewError("公钥不可为空"))
 	}
+
 	if rsaCondition.Sign == "" {
 		panic(common.NewError("签名不可为空"))
 	}
+
 	if rsaCondition.SignType == "" {
 		panic(common.NewError("验签方式不可为空"))
 	}
+
 	err := util.VerifyRSA(rsaCondition.Message, rsaCondition.PublicKey, rsaCondition.Sign, rsaCondition.SignType)
 	if err != nil {
 		ctx.JSON(common.NewSuccessData("公钥验签失败", false))

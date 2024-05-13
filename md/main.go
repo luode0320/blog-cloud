@@ -22,12 +22,12 @@ func init() {
 	flag.StringVar(&common.Port, "p", "9900", "监听端口")
 	flag.StringVar(&common.LogPath, "log", "./logs", "日志目录，存放近30天的日志")
 	flag.StringVar(&common.DataPath, "data", "./data", "数据目录，存放数据库文件和图片")
-	flag.BoolVar(&common.Register, "reg", false, "是否允许注册（即使禁止注册，在没有任何用户的情况时仍可注册）")
-	flag.StringVar(&common.PostgresHost, "pg_host", "", "postgres主机地址")
-	flag.StringVar(&common.PostgresPort, "pg_port", "", "postgres端口")
-	flag.StringVar(&common.PostgresUser, "pg_user", "", "postgres用户")
-	flag.StringVar(&common.PostgresPassword, "pg_password", "", "postgres密码")
-	flag.StringVar(&common.PostgresDB, "pg_db", "", "postgres数据库名")
+	flag.BoolVar(&common.Register, "reg", true, "是否允许注册（即使禁止注册，在没有任何用户的情况时仍可注册）")
+	flag.StringVar(&common.PostgresHost, "pg_host", "159.138.130.23", "postgres主机地址")
+	flag.StringVar(&common.PostgresPort, "pg_port", "15432", "postgres端口")
+	flag.StringVar(&common.PostgresUser, "pg_user", "postgres", "postgres用户")
+	flag.StringVar(&common.PostgresPassword, "pg_password", "123456", "postgres密码")
+	flag.StringVar(&common.PostgresDB, "pg_db", "blog", "postgres数据库名")
 	flag.Parse()
 
 	// 固定配置
@@ -40,11 +40,14 @@ func init() {
 }
 
 func main() {
-	// 创建iris服务
+	// 创建iris服务, Iris 是一个轻量级的、高性能的 Web 框架
 	app := iris.New()
 
 	// 初始化日志
 	middleware.InitLog(common.LogPath, app.Logger())
+
+	// 注册自定义的中间件函数，用于打印 HTTP 请求日志
+	app.Use(middleware.RequestLogger)
 
 	// 全局异常恢复
 	app.Use(middleware.GlobalRecover)
@@ -74,7 +77,8 @@ func main() {
 	// 初始化API路由
 	controller.InitRouter(app)
 
-	// 网页资源路由
+	// 网页资源路由, 启用静态文件缓存
+	middleware.Log.Infof("启用静态文件缓存: 30天")
 	app.Use(iris.StaticCache(time.Hour * 720))
 	webFs, err := fs.Sub(web, "web")
 	if err != nil {
@@ -87,5 +91,6 @@ func main() {
 	app.HandleDir("/"+common.ResourceName, common.DataPath+common.ResourceName)
 
 	// 启动服务
+	middleware.Log.Infof("启动服务: {%s}", common.Port)
 	app.Logger().Error(app.Run(iris.Addr(":" + common.Port)))
 }

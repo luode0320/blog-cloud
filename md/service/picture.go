@@ -19,10 +19,12 @@ func PicturePage(pageCondition common.PageCondition[interface{}], userId string)
 	if err != nil {
 		panic(common.NewErr("查询失败", err))
 	}
+
 	picturePageResults := []entity.PicturePageResult{}
 	for _, v := range pictures {
 		picturePageResults = append(picturePageResults, entity.PicturePageResult{Picture: v, PicturePrefix: "/" + common.ResourceName + "/" + common.PictureName + "/", ThumbnailPrefix: "/" + common.ResourceName + "/" + common.ThumbnailName + "/"})
 	}
+
 	pageResult := common.PageResult[entity.PicturePageResult]{Records: picturePageResults, Total: total}
 	return pageResult
 }
@@ -60,6 +62,8 @@ func PictureDelete(id, userId string) {
 	if err != nil {
 		panic(common.NewErr("删除失败", err))
 	}
+
+	middleware.Log.Infof("成功删除图片: {%s}", id)
 }
 
 // 图片上传
@@ -78,17 +82,21 @@ func PictureUpload(pictureFile, thumbnailFile multipart.File, pictureInfo, thumb
 		panic(common.NewError("缩略图大小不可超过100KB"))
 	}
 
-	// 获取文件后缀
+	// 获取图片,略缩图后缀
 	pictureExt := util.FileExt(pictureInfo.Filename)
 	thumbnailExt := util.FileExt(thumbnailInfo.Filename)
+
 	extArr := []string{".apng", ".bmp", ".gif", ".ico", ".jfif", ".jpeg", ".jpg", ".png", ".webp"}
-	extNames := "APNG、BMP、GIF、ICO、JPEG、PNG、WebP"
+	extNames := "APNG,BMP,GIF,ICO,JFIF,JPEG,JPG,PNG,WebP"
+
 	if !slices.Contains(extArr, pictureExt) {
 		panic(common.NewError("仅支持以下格式的图片：" + extNames))
 	}
+
 	if !slices.Contains(extArr, thumbnailExt) {
 		panic(common.NewError("仅支持以下格式的缩略图：" + extNames))
 	}
+
 	if util.StringLength(pictureInfo.Filename) > 1000 || util.StringLength(thumbnailInfo.Filename) > 1000 {
 		panic(common.NewError("图片文件名称过长"))
 	}
@@ -98,6 +106,7 @@ func PictureUpload(pictureFile, thumbnailFile multipart.File, pictureInfo, thumb
 	if err != nil {
 		panic(common.NewErr("图片解析失败", err))
 	}
+
 	thumbnailByte, err := io.ReadAll(thumbnailFile)
 	if err != nil {
 		panic(common.NewErr("缩略图解析失败", err))
@@ -124,16 +133,19 @@ func PictureUpload(pictureFile, thumbnailFile multipart.File, pictureInfo, thumb
 			panic(common.NewErr("图片上传失败", err))
 		}
 		defer savePictureFile.Close()
+
 		_, err = savePictureFile.Write(pictureByte)
 		if err != nil {
 			panic(common.NewErr("图片上传失败", err))
 		}
+
 		// 保存缩略图
 		saveThumbnailFile, err := os.Create(common.DataPath + common.ResourceName + "/" + common.ThumbnailName + "/" + filename)
 		if err != nil {
 			panic(common.NewErr("图片上传失败", err))
 		}
 		defer saveThumbnailFile.Close()
+
 		_, err = saveThumbnailFile.Write(thumbnailByte)
 		if err != nil {
 			panic(common.NewErr("图片上传失败", err))
@@ -155,6 +167,7 @@ func PictureUpload(pictureFile, thumbnailFile multipart.File, pictureInfo, thumb
 	if needAddRecord {
 		tx := middleware.DbW.MustBegin()
 		defer tx.Rollback()
+
 		picture := entity.Picture{}
 		picture.Id = util.SnowflakeString()
 		picture.CreateTime = time.Now().UnixMilli()
@@ -167,11 +180,14 @@ func PictureUpload(pictureFile, thumbnailFile multipart.File, pictureInfo, thumb
 		if err != nil {
 			panic(common.NewErr("图片上传失败", err))
 		}
+
 		err = tx.Commit()
 		if err != nil {
 			panic(common.NewErr("图片上传失败", err))
 		}
 	}
 
-	return "/" + common.ResourceName + "/" + common.PictureName + "/" + filename, message
+	path := "/" + common.ResourceName + "/" + common.PictureName + "/" + filename
+	middleware.Log.Infof("成功上传图片: {%s}", path)
+	return path, message
 }

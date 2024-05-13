@@ -34,11 +34,13 @@ func PictureUpload(ctx iris.Context) {
 		panic(common.NewErr("图片解析失败", err))
 	}
 	defer pictureFile.Close()
+
 	thumbnailFile, thumbnailInfo, err := ctx.FormFile("thumbnail")
 	if err != nil {
 		panic(common.NewErr("图片解析失败", err))
 	}
 	defer thumbnailFile.Close()
+
 	path, message := service.PictureUpload(pictureFile, thumbnailFile, pictureInfo, thumbnailInfo, userId)
 	ctx.JSON(common.NewSuccessData(message, path))
 }

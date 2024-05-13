@@ -45,6 +45,7 @@ func DocumentList(db *sqlx.DB, bookId, userId string) ([]entity.Document, error)
 	if bookId != "" {
 		sqlCompletion.Eq("book_id", bookId, true)
 	}
+
 	result := []entity.Document{}
 	err := db.Select(&result, sqlCompletion.GetSql(), sqlCompletion.GetParams()...)
 	// 按名称升序

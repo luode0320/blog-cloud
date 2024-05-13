@@ -67,6 +67,8 @@ func InitLog(prefixPath string, logger *golog.Logger) {
 			}
 		}
 	}(logTicker)
+
+	Log.Infof("创建日志目录: {%s}", prefixPath)
 }
 
 // 删除早于指定天数的文件

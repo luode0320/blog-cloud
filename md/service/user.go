@@ -35,4 +35,6 @@ func UserUpdatePassword(userCondition entity.UserCondition) {
 	if err != nil {
 		panic(common.NewErr("更新失败", err))
 	}
+
+	middleware.Log.Infof("成功更新用户密码: {%s}", user.Name)
 }
