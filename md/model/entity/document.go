@@ -32,6 +32,7 @@ type DocumentPageCondition struct {
 type DocumentType string
 
 const (
+	MdExt      string       = ".md"     // MD文件后缀
 	DocMd      DocumentType = "md"      // 文档类型：markdown
 	DocOpenApi DocumentType = "openApi" // 文档类型：OpenApi
 )

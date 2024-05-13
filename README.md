@@ -68,7 +68,7 @@ docker run -d \
 --name blog-edit \
 --restart always \
 -p 4001:9900 \
--v /usr/local/src/blog/data:/md/data \
+-v /usr/local/src/blog/edit:/md/data/resource \
 -e reg=false \
 -e pg_host=159.138.130.23 \
 -e pg_port=15432 \

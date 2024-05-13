@@ -1,11 +1,13 @@
 package service
 
 import (
+	"fmt"
 	"md/dao"
 	"md/middleware"
 	"md/model/common"
 	"md/model/entity"
 	"md/util"
+	"os"
 	"strings"
 	"time"
 )
@@ -45,7 +47,7 @@ func DocumentAdd(document entity.Document) entity.Document {
 		panic(common.NewErr("添加失败", err))
 	}
 
-	middleware.Log.Infof("添加%s文档成功: {%s}", document.Type, document.Name)
+	middleware.Log.Infof("添加文档成功: {%s}", document.Name)
 	return document
 }
 
@@ -63,7 +65,12 @@ func DocumentUpdate(document entity.Document) {
 		panic(common.NewError("文档名称过长，请小于1000个字符"))
 	}
 
-	err := dao.DocumentUpdate(tx, document)
+	doc, err := dao.DocumentGetById(middleware.Db, document.Id, document.UserId)
+	if err != nil {
+		panic(common.NewErr("更新失败", err))
+	}
+
+	err = dao.DocumentUpdate(tx, document)
 	if err != nil {
 		panic(common.NewErr("更新失败", err))
 	}
@@ -73,7 +80,30 @@ func DocumentUpdate(document entity.Document) {
 		panic(common.NewErr("更新失败", err))
 	}
 
-	middleware.Log.Infof("成功修改%s文档基础信息: {%s}", document.Type, document.Name)
+	// 将文档写入markdown文件
+	go func() {
+		book := Book(document.BookId)
+
+		// 目录
+		oldFileName := doc.Name + entity.MdExt
+		newFileName := document.Name + entity.MdExt
+		filePath := common.DataPath + common.ResourceName + "/" + book.Name
+		err := os.MkdirAll(filePath, os.ModePerm)
+		if err != nil {
+			fmt.Printf("创建目录失败：%v\n", err)
+			return
+		}
+
+		err = os.Rename(filePath+"/"+oldFileName, filePath+"/"+newFileName)
+		if err != nil {
+			fmt.Printf("重命名文档失败：%v\n", err)
+			return
+		}
+
+		middleware.Log.Infof("成功更新文档基础信息: {%s}", filePath+"/"+newFileName)
+	}()
+
+	middleware.Log.Infof("成功更新文档基础信息: {%s}", document.Name)
 }
 
 // 修改文档内容
@@ -96,8 +126,43 @@ func DocumentUpdateContent(document entity.Document) entity.Document {
 		panic(common.NewErr("更新失败", err))
 	}
 
-	middleware.Log.Infof("成功修改%s文档内容: {%s}", document.Type, document.Name)
-	return DocumentGet(document.Id, document.UserId)
+	doc := DocumentGet(document.Id, document.UserId)
+
+	// 将文档写入markdown文件
+	go func() {
+		book := entity.Book{}
+		if doc.BookId == "" {
+			book.Name = "其它"
+		} else {
+			book = Book(doc.BookId)
+		}
+
+		// 创建目录
+		fileName := doc.Name + entity.MdExt
+		filePath := common.DataPath + common.ResourceName + "/" + book.Name
+		err := os.MkdirAll(filePath, os.ModePerm)
+		if err != nil {
+			fmt.Printf("创建目录失败：%v\n", err)
+			return
+		}
+
+		// 生成文件: 文集名称 + 文档名称
+		saveMdFile, err := os.Create(filePath + "/" + fileName)
+		if err != nil {
+			panic(common.NewErr("更新文档内容失败", err))
+		}
+		defer saveMdFile.Close()
+
+		_, err = saveMdFile.Write([]byte(document.Content))
+		if err != nil {
+			panic(common.NewErr("更新文档内容发生错误", err))
+		}
+
+		middleware.Log.Infof("成功更新文档内容: {%s}", filePath)
+	}()
+
+	middleware.Log.Infof("成功更新文档内容: {%s}", doc.Name)
+	return doc
 }
 
 // 删除文档
@@ -108,6 +173,23 @@ func DocumentDelete(id, userId string) {
 	err := dao.DocumentDeleteById(tx, id, userId)
 	if err != nil {
 		panic(common.NewErr("删除失败", err))
+	}
+
+	doc := DocumentGet(id, userId)
+	book := entity.Book{}
+	if doc.BookId == "" {
+		book.Name = "其它"
+	} else {
+		book = Book(doc.BookId)
+	}
+
+	fileName := doc.Name + entity.MdExt
+	filePath := common.DataPath + common.ResourceName + "/" + book.Name
+	// 删除文件: 文集名称 + 文档名称
+	err = os.Remove(filePath + "/" + fileName)
+	if err != nil {
+		fmt.Printf("删除文件失败：%v\n", err)
+		return
 	}
 
 	err = tx.Commit()

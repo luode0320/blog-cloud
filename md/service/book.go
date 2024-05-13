@@ -134,3 +134,13 @@ func BookList(userId string) []entity.Book {
 	books = append([]entity.Book{{Name: "全部"}}, books...)
 	return books
 }
+
+// 查询文集
+func Book(id string) entity.Book {
+	book, err := dao.Book(middleware.Db, id)
+	if err != nil {
+		panic(common.NewErr("查询失败", err))
+	}
+
+	return book
+}
