@@ -4,7 +4,7 @@
       <div class="left-view">
         <div class="title-view">
           <span :style="isDocument ? 'cursor: pointer' : ''" :title="isDocument ? (isStretch ? '收起侧栏' : '弹出侧栏') : ''" @click="iconClick">
-            <svg-icon name="md" customStyle="width: 20px; height: 20px; margin: 5px 5px 0 0"></svg-icon>
+            <svg-icon customStyle="width: 20px; height: 20px; margin: 5px 5px 0 0" name="md"></svg-icon>
           </span>
           <span :style="isDocument ? 'cursor: pointer' : ''" :title="isDocument ? (onlyPreview ? '编辑模式' : '预览模式') : ''" @click="titleClick">
             云文档
@@ -27,17 +27,17 @@
         </template>
       </el-dropdown>
     </div>
-    <router-view class="content-view" :onlyPreview="onlyPreview" :isStretch="isStretch"></router-view>
-    <el-dialog v-model="dialogVisible" title="修改密码" width="400px" :show-close="false" :before-close="dialogClose">
+    <router-view :isStretch="isStretch" :onlyPreview="onlyPreview" class="content-view"></router-view>
+    <el-dialog v-model="dialogVisible" :before-close="dialogClose" :show-close="false" title="修改密码" width="400px">
       <form>
-        <el-input v-model.trim="form.password" size="large" type="password" clearable placeholder="请输入原密码"></el-input>
-        <el-input style="margin: 10px 0" v-model.trim="form.newPassword" size="large" type="password" clearable placeholder="请输入新密码"></el-input>
-        <el-input v-model.trim="form.confirmPassword" size="large" type="password" clearable placeholder="请再次输入密码"></el-input>
+        <el-input v-model.trim="form.password" clearable placeholder="请输入原密码" size="large" type="password"></el-input>
+        <el-input v-model.trim="form.newPassword" clearable placeholder="请输入新密码" size="large" style="margin: 10px 0" type="password"></el-input>
+        <el-input v-model.trim="form.confirmPassword" clearable placeholder="请再次输入密码" size="large" type="password"></el-input>
       </form>
       <template #footer>
         <span class="dialog-footer">
           <el-button :loading="dialogLoading" @click="dialogClose">取消</el-button>
-          <el-button type="primary" :loading="dialogLoading" @click="updatePassword">保存</el-button>
+          <el-button :loading="dialogLoading" type="primary" @click="updatePassword">保存</el-button>
         </span>
       </template>
     </el-dialog>
@@ -59,7 +59,7 @@ const name = ref(Token.getName());
 const dialogVisible = ref(false);
 const dialogLoading = ref(false);
 const form = ref({ password: "", newPassword: "", confirmPassword: "" });
-const onlyPreview = ref(true);
+const onlyPreview = ref(false);
 const isStretch = ref(true);
 const isDocument = ref(router.currentRoute.value.name === "document");
 
