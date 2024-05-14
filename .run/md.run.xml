@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="md" type="GoApplicationRunConfiguration" factoryName="Go Application">
-    <module name="blog-edit" />
+    <module name="blog-cloud" />
     <target name="@@@LOCAL@@@" />
     <working_directory value="$PROJECT_DIR$/md" />
     <kind value="FILE" />

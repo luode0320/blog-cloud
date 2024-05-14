@@ -4,7 +4,7 @@
 
 一个简单的 Markdown、OpenAPI 文档服务器
 
-# 为什么要用blog-edit
+# 为什么要用blog-cloud
 
 - 我已经有一个[blog](https://blog.luode.vip/)博客网站, 但是这个网站只能查看不能编辑。
 - 所以我需要一个可以在线编辑md文件的服务, 编辑之后可以通过我自带的博客网站查看。
@@ -42,40 +42,40 @@
 ## 拉取
 
 ```
-docker pull luode0320/blog-edit:latest
+docker pull luode0320/blog-cloud:latest
 ```
 
 ## 配置
 
 ```sh
-mkdir -p /usr/local/src/blog-edit
-cd /usr/local/src/blog-edit
+mkdir -p /usr/local/src/blog-cloud
+cd /usr/local/src/blog-cloud
 ```
 
 输入:
 
 ```sh
 docker run -d \
---name blog-edit \
+--name blog-cloud \
 --restart always \
 -p 4001:9900 \
--v /usr/local/src/blog/edit:/md/data \
-luode0320/blog-edit:latest
+-v /usr/local/src/blog/cloud:/md/data \
+luode0320/blog-cloud:latest
 ```
 
 ```shell
 docker run -d \
---name blog-edit \
+--name blog-cloud \
 --restart always \
 -p 4001:9900 \
--v /usr/local/src/blog/edit:/md/data/resource \
+-v /usr/local/src/blog/cloud:/md/data/resource \
 -e reg=false \
 -e pg_host=159.138.130.23 \
 -e pg_port=15432 \
 -e pg_user=postgres \
 -e pg_password=123456 \
 -e pg_db=blog \
-luode0320/blog-edit:latest
+luode0320/blog-cloud:latest
 ```
 
 ```sh

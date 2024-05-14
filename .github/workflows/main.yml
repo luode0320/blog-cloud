@@ -21,8 +21,8 @@ jobs:
       - name: 打包镜像, 上传 Docker Hub # 描述词, 无实际意义
         run: | # 当前服务器依次执行下面的命令
           docker login -u luode0320 -p ${{ secrets.REGISTRY_PASSWORD }}
-          docker build -t luode0320/blog-edit:latest .
-          docker push luode0320/blog-edit:latest
+          docker build -t luode0320/blog-cloud:latest .
+          docker push luode0320/blog-cloud:latest
 
       - name: 登录服务器, 执行脚本 # 描述词, 无实际意义
         uses: appleboy/ssh-action@master # 通过SSH登录到远程服务器
@@ -34,9 +34,9 @@ jobs:
           script: | # 远程服务器依次执行下面的命令, 删除容器, 删除镜像, 拉取最新镜像, 启动blog容器
             docker rm -f blog-edit
             docker rmi luode0320/blog-edit:latest
-            docker pull luode0320/blog-edit:latest
+            docker pull luode0320/blog-cloud:latest
             docker run -d \
-            --name blog-edit \
+            --name blog-cloud \
             --restart always \
             -p 4001:9900 \
             -v /usr/local/src/blog/data:/md/data \
@@ -46,4 +46,4 @@ jobs:
             -e pg_user=postgres \
             -e pg_password=123456 \
             -e pg_db=blog \
-            luode0320/blog-edit:latest
+            luode0320/blog-cloud:latest
