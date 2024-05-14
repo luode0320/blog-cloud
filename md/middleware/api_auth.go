@@ -2,10 +2,7 @@ package middleware
 
 import (
 	"md/model/common"
-	"md/util"
-	"strconv"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/kataras/iris/v12"
@@ -27,20 +24,20 @@ func DataAuth(ctx iris.Context) {
 // TokenAuth 函数用于进行 token 相关接口的认证授权
 // 参数 ctx 表示 Iris 的上下文对象
 func TokenAuth(ctx iris.Context) {
-	// 从请求头中解析出 token
-	token := resolveHeader(ctx, "Basic")
-
-	// 计算当前时间戳的10分钟为基准的值，并进行 SHA256 加密
-	current := time.Now().UnixMilli() / 600000
-	t1 := util.EncryptSHA256([]byte(common.BasicTokenKey + strconv.FormatInt(current, 10)))
-	t2 := util.EncryptSHA256([]byte(common.BasicTokenKey + strconv.FormatInt(current-1, 10)))
-	t3 := util.EncryptSHA256([]byte(common.BasicTokenKey + strconv.FormatInt(current+1, 10)))
-
-	// 验证 token 是否在允许的范围内
-	if token != t1 && token != t2 && token != t3 {
-		// 如果 token 不在允许的范围内，则抛出认证失败的错误
-		panic(common.NewErrorCode(common.HttpAuthFailure, "认证失败"))
-	}
+	//// 从请求头中解析出 token
+	//token := resolveHeader(ctx, "Basic")
+	//
+	//// 计算当前时间戳的10分钟为基准的值，并进行 SHA256 加密
+	//current := time.Now().UnixMilli() / 600000
+	//t1 := util.EncryptSHA256([]byte(common.BasicTokenKey + strconv.FormatInt(current, 10)))
+	//t2 := util.EncryptSHA256([]byte(common.BasicTokenKey + strconv.FormatInt(current-1, 10)))
+	//t3 := util.EncryptSHA256([]byte(common.BasicTokenKey + strconv.FormatInt(current+1, 10)))
+	//
+	//// 验证 token 是否在允许的范围内
+	//if token != t1 && token != t2 && token != t3 {
+	//	// 如果 token 不在允许的范围内，则抛出认证失败的错误
+	//	panic(common.NewErrorCode(common.HttpAuthFailure, "认证失败"))
+	//}
 
 	// 继续处理请求
 	ctx.Next()
