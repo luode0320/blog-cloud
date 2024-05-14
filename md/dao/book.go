@@ -53,6 +53,6 @@ func BookListByName(tx *sqlx.Tx, name, userId string) ([]entity.Book, error) {
 func Book(db *sqlx.DB, id string) (entity.Book, error) {
 	sql := `select * from t_book where id=$1`
 	result := entity.Book{}
-	err := db.Select(&result, sql, id)
+	err := db.Get(&result, sql, id)
 	return result, err
 }

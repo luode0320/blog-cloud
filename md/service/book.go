@@ -6,6 +6,7 @@ import (
 	"md/model/common"
 	"md/model/entity"
 	"md/util"
+	"os"
 	"strings"
 	"time"
 )
@@ -103,6 +104,8 @@ func BookDelete(id, userId string) {
 	tx := middleware.DbW.MustBegin()
 	defer tx.Rollback()
 
+	book := Book(id)
+
 	// 删除
 	err := dao.BookDeleteById(tx, id, userId)
 	if err != nil {
@@ -113,6 +116,14 @@ func BookDelete(id, userId string) {
 	err = dao.DocumentClearBookId(tx, id)
 	if err != nil {
 		panic(common.NewErr("删除失败", err))
+	}
+
+	filePath := common.DataPath + common.ResourceName + "/" + book.Name
+	// 删除文件: 文集名称
+	err = os.RemoveAll(filePath)
+	if err != nil {
+		panic(common.NewErr("删除目录失败", err))
+		return
 	}
 
 	err = tx.Commit()

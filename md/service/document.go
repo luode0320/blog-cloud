@@ -1,7 +1,7 @@
 package service
 
 import (
-	"fmt"
+	"errors"
 	"md/dao"
 	"md/middleware"
 	"md/model/common"
@@ -14,6 +14,10 @@ import (
 
 // 添加文档
 func DocumentAdd(document entity.Document) entity.Document {
+	if document.BookId == "" {
+		panic(common.NewErr("请先选择的文集", errors.New("请先选择的文集")))
+	}
+
 	tx := middleware.DbW.MustBegin()
 	defer tx.Rollback()
 
@@ -46,6 +50,34 @@ func DocumentAdd(document entity.Document) entity.Document {
 	if err != nil {
 		panic(common.NewErr("添加失败", err))
 	}
+
+	// 将文档写入markdown文件
+	go func() {
+		book := entity.Book{}
+		if document.BookId == "" {
+			book.Name = "其它"
+		} else {
+			book = Book(document.BookId)
+		}
+
+		// 创建目录
+		fileName := document.Name + entity.MdExt
+		filePath := common.DataPath + common.ResourceName + "/" + book.Name
+		err := os.MkdirAll(filePath, os.ModePerm)
+		if err != nil {
+			middleware.Log.Errorf("创建目录失败: {%s}", err)
+			return
+		}
+
+		// 生成文件: 文集名称 + 文档名称
+		saveMdFile, err := os.Create(filePath + "/" + fileName)
+		if err != nil {
+			middleware.Log.Errorf("添加文档失败: {%s}", err)
+		}
+		defer saveMdFile.Close()
+
+		middleware.Log.Infof("成功添加文档: {%s}", filePath)
+	}()
 
 	middleware.Log.Infof("添加文档成功: {%s}", document.Name)
 	return document
@@ -90,13 +122,13 @@ func DocumentUpdate(document entity.Document) {
 		filePath := common.DataPath + common.ResourceName + "/" + book.Name
 		err := os.MkdirAll(filePath, os.ModePerm)
 		if err != nil {
-			fmt.Printf("创建目录失败：%v\n", err)
+			middleware.Log.Errorf("创建目录失败: {%s}", err)
 			return
 		}
 
 		err = os.Rename(filePath+"/"+oldFileName, filePath+"/"+newFileName)
 		if err != nil {
-			fmt.Printf("重命名文档失败：%v\n", err)
+			middleware.Log.Errorf("重命名文档失败: {%s}", err)
 			return
 		}
 
@@ -142,20 +174,22 @@ func DocumentUpdateContent(document entity.Document) entity.Document {
 		filePath := common.DataPath + common.ResourceName + "/" + book.Name
 		err := os.MkdirAll(filePath, os.ModePerm)
 		if err != nil {
-			fmt.Printf("创建目录失败：%v\n", err)
+			middleware.Log.Errorf("创建目录失败: {%s}", err)
 			return
 		}
 
 		// 生成文件: 文集名称 + 文档名称
 		saveMdFile, err := os.Create(filePath + "/" + fileName)
 		if err != nil {
-			panic(common.NewErr("更新文档内容失败", err))
+			middleware.Log.Errorf("更新文档内容失败: {%s}", err)
+			return
 		}
 		defer saveMdFile.Close()
 
 		_, err = saveMdFile.Write([]byte(document.Content))
 		if err != nil {
-			panic(common.NewErr("更新文档内容发生错误", err))
+			middleware.Log.Errorf("更新文档内容发生错误: {%s}", err)
+			return
 		}
 
 		middleware.Log.Infof("成功更新文档内容: {%s}", filePath)
@@ -188,7 +222,7 @@ func DocumentDelete(id, userId string) {
 	// 删除文件: 文集名称 + 文档名称
 	err = os.Remove(filePath + "/" + fileName)
 	if err != nil {
-		fmt.Printf("删除文件失败：%v\n", err)
+		panic(common.NewErr("删除文件失败", err))
 		return
 	}
 
