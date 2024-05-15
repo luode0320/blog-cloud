@@ -12,11 +12,12 @@ COPY --from=nodejs /build/web/dist /build/md/web
 WORKDIR /build/md
 RUN go build
 
-COPY ./md/data /build/md/data
+COPY md/data/ /var/data
 
 FROM alpine:latest
 COPY --from=go /build/md/md /md/
 ENV reg=false
 EXPOSE 9900
 RUN chmod +x /md/md
-CMD /md/md -p 9900 -log /md/logs -data /md/data -reg=${reg} -pg_host=${pg_host} -pg_port=${pg_port} -pg_user=${pg_user} -pg_password=${pg_password} -pg_db=${pg_db}
+CMD cp -R /var/data /md && /md/md -p 9900 -log /md/logs -data /md/data -reg=${reg} -pg_host=${pg_host} -pg_port=${pg_port} -pg_user=${pg_user} -pg_password=${pg_password} -pg_db=${pg_db}
+
