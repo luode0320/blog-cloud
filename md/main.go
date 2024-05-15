@@ -34,7 +34,7 @@ func init() {
 	common.LogPath = util.PathCompletion(common.LogPath)
 	common.DataPath = util.PathCompletion(common.DataPath)
 	common.BasicTokenKey = "md"
-	common.ResourceName = "resource"
+	common.ResourceName = "admin"
 	common.PictureName = "picture"
 	common.ThumbnailName = "thumbnail"
 }

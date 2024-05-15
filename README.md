@@ -59,7 +59,7 @@ docker run -d \
 --name blog-cloud \
 --restart always \
 -p 4001:9900 \
--v /usr/local/src/blog/cloud:/md/data \
+-v /usr/local/src/blog/data:/md/data \
 luode0320/blog-cloud:latest
 ```
 
@@ -68,10 +68,10 @@ docker run -d \
 --name blog-cloud \
 --restart always \
 -p 4001:9900 \
--v /usr/local/src/blog/cloud:/md/data/resource \
+-v /usr/local/src/blog/data:/md/data/admin \
 -e reg=false \
--e pg_host=159.138.130.23 \
--e pg_port=15432 \
+-e pg_host="0.0.0.0" \
+-e pg_port=5432 \
 -e pg_user=postgres \
 -e pg_password=123456 \
 -e pg_db=blog \
