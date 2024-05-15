@@ -12,10 +12,10 @@ COPY --from=nodejs /build/web/dist /build/md/web
 WORKDIR /build/md
 RUN go build
 
-COPY md/data/ /var/data
 
 FROM alpine:latest
 COPY --from=go /build/md/md /md/
+COPY /md/data/ /var/data
 ENV reg=false
 EXPOSE 9900
 RUN chmod +x /md/md
