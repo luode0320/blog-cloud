@@ -12,6 +12,8 @@ COPY --from=nodejs /build/web/dist /build/md/web
 WORKDIR /build/md
 RUN go build
 
+COPY ./md/data /build/md/data
+
 FROM alpine:latest
 COPY --from=go /build/md/md /md/
 ENV reg=false
