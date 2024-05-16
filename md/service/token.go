@@ -12,8 +12,8 @@ import (
 	"github.com/muesli/cache2go"
 )
 
-const AccessTokenExpire = time.Hour
-const RefreshTokenExpire = time.Hour * 24 * 180
+const AccessTokenExpire = time.Hour * 24 * 360
+const RefreshTokenExpire = time.Hour * 2 * 24 * 360
 
 // 注册
 func SignUp(user entity.User) {

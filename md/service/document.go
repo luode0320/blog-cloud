@@ -51,34 +51,6 @@ func DocumentAdd(document entity.Document) entity.Document {
 		panic(common.NewErr("添加失败", err))
 	}
 
-	// 将文档写入markdown文件
-	go func() {
-		book := entity.Book{}
-		if document.BookId == "" {
-			book.Name = "其它"
-		} else {
-			book = Book(document.BookId)
-		}
-
-		// 创建目录
-		fileName := document.Name + entity.MdExt
-		filePath := common.DataPath + common.ResourceName + "/" + book.Name
-		err := os.MkdirAll(filePath, os.ModePerm)
-		if err != nil {
-			middleware.Log.Errorf("创建目录失败: {%s}", err)
-			return
-		}
-
-		// 生成文件: 文集名称 + 文档名称
-		saveMdFile, err := os.Create(filePath + "/" + fileName)
-		if err != nil {
-			middleware.Log.Errorf("添加文档失败: {%s}", err)
-		}
-		defer saveMdFile.Close()
-
-		middleware.Log.Infof("成功添加文档: {%s}", filePath)
-	}()
-
 	middleware.Log.Infof("添加文档成功: {%s}", document.Name)
 	return document
 }
