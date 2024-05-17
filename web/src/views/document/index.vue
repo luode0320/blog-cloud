@@ -1,51 +1,51 @@
 <template>
   <div class="page-document">
-    <book @change="bookChange" @books="booksFetch" :onlyPreview="onlyPreview" :isStretch="isStretch" :loading="mdLoading"></book>
+    <book :isStretch="isStretch" :loading="mdLoading" :onlyPreview="onlyPreview" @books="booksFetch" @change="bookChange"></book>
     <doc
-      :onlyPreview="onlyPreview"
-      :isStretch="isStretch"
+      ref="docRef"
+      :books="books"
       :currentBookId="currentBookId"
       :currentDoc="currentDoc"
-      :books="books"
+      :isStretch="isStretch"
+      :onlyPreview="onlyPreview"
       @change="docChange"
       @loading="loadingChange"
-      ref="docRef"
     ></doc>
-    <div class="codemirror-view" v-if="docType === 'openApi'">
+    <div v-if="docType === 'openApi'" class="codemirror-view">
       <open-api v-if="onlyPreview" :content="currentDoc.content"></open-api>
       <template v-else>
         <div class="codemirror-toolbar">
           <div class="icon-outer" title="保存" @click="saveDoc(currentDoc.content)">
-            <svg-icon name="save" className="icon-save"></svg-icon>
+            <svg-icon className="icon-save" name="save"></svg-icon>
           </div>
           <div class="icon-outer" title="导出" @click="exportOpenApi(currentDoc.name, currentDoc.content)">
-            <svg-icon name="download" className="icon-download"></svg-icon>
+            <svg-icon className="icon-download" name="download"></svg-icon>
           </div>
         </div>
         <div class="codemirror-inner">
           <codemirror-editor
-            :style="{ visibility: codemirrorVisibility }"
             ref="codemirrorRef"
             v-model="currentDoc.content"
             :disabled="onlyPreview || mdLoading"
+            :style="{ visibility: codemirrorVisibility }"
             noRadius
-            @save="saveDoc(currentDoc.content)"
             @ready="codemirrorReday"
+            @save="saveDoc(currentDoc.content)"
           />
         </div>
       </template>
     </div>
     <template v-else>
-      <md-preview v-if="onlyPreview" :key="'preview' + mdKey" class="editor-view" :content="currentDoc.content" />
+      <md-preview v-if="onlyPreview" :key="'preview' + mdKey" :content="currentDoc.content" class="editor-view" />
       <md-editor
         v-else
         :key="'editor' + mdKey"
-        class="editor-view"
         v-model="currentDoc.content"
         v-loading="mdLoading"
-        @onUploadImg="uploadImage"
-        @onSave="saveDoc"
+        class="editor-view"
         @export="exporMarkdown(currentDoc.name, currentDoc.content)"
+        @onSave="saveDoc"
+        @onUploadImg="uploadImage"
       />
     </template>
   </div>
@@ -134,14 +134,14 @@ const loadingChange = (val: boolean) => {
 };
 
 /**
- * 文集选择变化
+ * 一级目录选择变化
  */
 const bookChange = (bookId: string) => {
   currentBookId.value = bookId;
 };
 
 /**
- * 文集列表变化
+ * 一级目录列表变化
  */
 const booksFetch = (bookList: Book[]) => {
   books.value = bookList;

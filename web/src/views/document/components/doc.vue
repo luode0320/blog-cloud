@@ -1,34 +1,30 @@
 <template>
-  <div class="page-doc" v-loading="docLoading" :class="{ 'page-doc-shrink': !isStretch }">
-    <div class="mask-view" v-if="docDisabled"></div>
+  <div v-loading="docLoading" :class="{ 'page-doc-shrink': !isStretch }" class="page-doc">
+    <div v-if="docDisabled" class="mask-view"></div>
     <el-popover v-if="!onlyPreview" :visible="addDocVisible" placement="bottom" trigger="click" width="240px">
       <el-input v-model="newDocName" placeholder="请输入文档名称" style="margin-right: 10px"></el-input>
-      <el-radio-group v-model="newDocType" style="margin-top: 8px">
-        <el-radio-button label="md">Markdown</el-radio-button>
-        <el-radio-button label="openApi">OpenAPI</el-radio-button>
-      </el-radio-group>
       <div style="display: flex; margin-top: 8px; justify-content: flex-end">
-        <el-button @click="addDocCancel" size="small">取消</el-button>
-        <el-button @click="addDocSave" type="primary" size="small">确定</el-button>
+        <el-button size="small" @click="addDocCancel">取消</el-button>
+        <el-button size="small" type="primary" @click="addDocSave">确定</el-button>
       </div>
       <template #reference>
-        <el-button class="create-button" type="primary" size="large" link :icon="Plus" @click="addDocVisible = true">创建文档</el-button>
+        <el-button :icon="Plus" class="create-button" link size="large" type="primary" @click="addDocVisible = true">创建文档</el-button>
       </template>
     </el-popover>
-    <el-button v-else class="create-button" type="primary" size="large" link>文档选择</el-button>
-    <el-scrollbar class="scroll-view" ref="scrollRef">
+    <el-button v-else class="create-button" link size="large" type="primary">文档选择</el-button>
+    <el-scrollbar ref="scrollRef" class="scroll-view">
       <div
-        class="item-view"
-        :class="docIdTemp === item.id || (!docIdTemp && currentDoc.id === item.id) ? 'selected' : ''"
         v-for="item in docs"
         :key="item.id"
+        :class="docIdTemp === item.id || (!docIdTemp && currentDoc.id === item.id) ? 'selected' : ''"
+        class="item-view"
         @click="docClick(item)"
       >
         <text-tip :content="item.name"></text-tip>
         <div class="sub-text">{{ formatTime(item.updateTime, "YYYY-MM-DD HH:mm:ss") }}</div>
-        <div v-if="item.published" class="published-view" @click.stop="copyPublishedClick(item)" title="已发布"></div>
-        <el-dropdown trigger="click" v-if="!onlyPreview && item.id">
-          <el-icon class="setting-button" @click.stop="() => {}" title="操作"><Tools /></el-icon>
+        <div v-if="item.published" class="published-view" title="已发布" @click.stop="copyPublishedClick(item)"></div>
+        <el-dropdown v-if="!onlyPreview && item.id" trigger="click">
+          <el-icon class="setting-button" title="操作" @click.stop="() => {}"><Tools /></el-icon>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item style="user-select: none" @click="updateDocClick(item)">修改文档</el-dropdown-item>
@@ -40,10 +36,10 @@
     </el-scrollbar>
     <el-dialog
       v-model="dialog.visible"
+      :before-close="dialogClose"
+      :show-close="false"
       :title="dialog.isAdd ? '创建文档' : '更新文档信息'"
       width="400px"
-      :show-close="false"
-      :before-close="dialogClose"
     >
       <el-form label-width="70px" size="large">
         <el-form-item label="文档名称">
@@ -58,7 +54,7 @@
         <el-form-item label="公开发布">
           <el-switch v-model="dialog.condition.published" />
         </el-form-item>
-        <el-form-item label="所属文集">
+        <el-form-item label="所属一级目录">
           <el-select v-model="dialog.condition.bookId" style="width: 100%">
             <el-option v-for="item in books" :key="item.id" :label="item.name" :value="item.id"></el-option>
           </el-select>
@@ -67,7 +63,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button :loading="dialog.loading" @click="dialogClose">取消</el-button>
-          <el-button type="primary" :loading="dialog.loading" @click="dialogSave">保存</el-button>
+          <el-button :loading="dialog.loading" type="primary" @click="dialogSave">保存</el-button>
         </span>
       </template>
     </el-dialog>

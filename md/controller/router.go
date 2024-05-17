@@ -41,7 +41,7 @@ func InitRouter(app *iris.Application) {
 				user.Post("/update-password", UserUpdatePassword)
 			})
 
-			// 文集: 一级目录
+			// 一级目录: 一级目录
 			data.PartyFunc("/book", func(book iris.Party) {
 				book.Post("/add", BookAdd)
 				book.Post("/update", BookUpdate)

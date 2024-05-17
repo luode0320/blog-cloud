@@ -42,9 +42,7 @@ func DocumentList(db *sqlx.DB, bookId, userId string) ([]entity.Document, error)
 	sqlCompletion := util.SqlCompletion{}
 	sqlCompletion.InitSql(`select id,name,type,published,create_time,update_time,book_id from t_document`)
 	sqlCompletion.Eq("user_id", userId, true)
-	if bookId != "" {
-		sqlCompletion.Eq("book_id", bookId, true)
-	}
+	sqlCompletion.Eq("book_id", bookId, true)
 
 	result := []entity.Document{}
 	err := db.Select(&result, sqlCompletion.GetSql(), sqlCompletion.GetParams()...)

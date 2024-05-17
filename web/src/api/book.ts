@@ -2,7 +2,7 @@ import request from "@/utils/request";
 
 class BookApi {
   /**
-   * 查询文集列表
+   * 查询一级目录列表
    * @returns
    */
   list() {
@@ -13,7 +13,7 @@ class BookApi {
   }
 
   /**
-   * 添加文集
+   * 添加一级目录
    * @param book
    * @returns
    */
@@ -26,7 +26,7 @@ class BookApi {
   }
 
   /**
-   * 修改文集
+   * 修改一级目录
    * @param book
    * @returns
    */
@@ -39,7 +39,7 @@ class BookApi {
   }
 
   /**
-   * 根据id删除文集
+   * 根据id删除一级目录
    * @param id
    * @returns
    */

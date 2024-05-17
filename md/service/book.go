@@ -6,37 +6,37 @@ import (
 	"md/model/common"
 	"md/model/entity"
 	"md/util"
-	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
-// 添加文集
+// 添加一级目录
 func BookAdd(book entity.Book) {
 	tx := middleware.DbW.MustBegin()
 	defer tx.Rollback()
 
 	book.Name = strings.TrimSpace(book.Name)
 	if book.Name == "" {
-		panic(common.NewError("文集名称不可为空"))
+		panic(common.NewError("一级目录不可为空"))
 	}
 
 	if book.Name == "全部" {
-		panic(common.NewError("已存在同名文集"))
+		panic(common.NewError("已存在同名一级目录"))
 	}
 
 	if util.StringLength(book.Name) > 1000 {
-		panic(common.NewError("文集名称过长，请小于1000个字符"))
+		panic(common.NewError("一级目录过长，请小于1000个字符"))
 	}
 
-	// 根据名称查询文集列表
+	// 根据名称查询一级目录列表
 	books, err := dao.BookListByName(tx, book.Name, book.UserId)
 	if err != nil {
 		panic(common.NewErr("添加失败", err))
 	}
 
 	if len(books) > 0 {
-		panic(common.NewError("已存在同名文集"))
+		panic(common.NewError("已存在同名一级目录"))
 	}
 
 	// 保存
@@ -52,28 +52,34 @@ func BookAdd(book entity.Book) {
 		panic(common.NewErr("添加失败", err))
 	}
 
-	middleware.Log.Infof("成功添加文集: {%s}", book.Name)
+	go func() {
+		util.CreateDir(common.DataPath, common.ResourceName, book.Name)
+	}()
+
+	middleware.Log.Infof("成功添加一级目录: {%s}", book.Name)
 }
 
-// 修改文集名称
+// 修改一级目录
 func BookUpdate(book entity.Book) {
 	tx := middleware.DbW.MustBegin()
 	defer tx.Rollback()
 
+	oldBook := Book(book.Id)
+
 	book.Name = strings.TrimSpace(book.Name)
 	if book.Name == "" {
-		panic(common.NewError("文集名称不可为空"))
+		panic(common.NewError("一级目录不可为空"))
 	}
 
 	if book.Name == "全部" {
-		panic(common.NewError("已存在同名文集"))
+		panic(common.NewError("已存在同名一级目录"))
 	}
 
 	if util.StringLength(book.Name) > 1000 {
-		panic(common.NewError("文集名称过长，请小于1000个字符"))
+		panic(common.NewError("一级目录过长，请小于1000个字符"))
 	}
 
-	// 根据名称查询文集列表
+	// 根据名称查询一级目录列表
 	books, err := dao.BookListByName(tx, book.Name, book.UserId)
 	if err != nil {
 		panic(common.NewErr("添加失败", err))
@@ -81,7 +87,7 @@ func BookUpdate(book entity.Book) {
 
 	for _, v := range books {
 		if v.Id != book.Id {
-			panic(common.NewError("已存在同名文集"))
+			panic(common.NewError("已存在同名一级目录"))
 		}
 	}
 
@@ -96,10 +102,16 @@ func BookUpdate(book entity.Book) {
 		panic(common.NewErr("更新失败", err))
 	}
 
-	middleware.Log.Infof("成功更新文集: {%s}", book.Name)
+	oldPath := filepath.Join(common.DataPath, common.ResourceName, oldBook.Name)
+	newPath := filepath.Join(common.DataPath, common.ResourceName, book.Name)
+	go func() {
+		util.RenameDir(oldPath, newPath)
+	}()
+
+	middleware.Log.Infof("成功更新一级目录: {%s}", book.Name)
 }
 
-// 删除文集
+// 删除一级目录
 func BookDelete(id, userId string) {
 	tx := middleware.DbW.MustBegin()
 	defer tx.Rollback()
@@ -118,23 +130,19 @@ func BookDelete(id, userId string) {
 		panic(common.NewErr("删除失败", err))
 	}
 
-	filePath := common.DataPath + common.ResourceName + "/" + book.Name
-	// 删除文件: 文集名称
-	err = os.RemoveAll(filePath)
-	if err != nil {
-		panic(common.NewErr("删除目录失败", err))
-		return
-	}
-
 	err = tx.Commit()
 	if err != nil {
 		panic(common.NewErr("删除失败", err))
 	}
 
-	middleware.Log.Infof("成功删除文集: {%s}", id)
+	go func() {
+		util.RemoveDir(common.DataPath, common.ResourceName, book.Name)
+	}()
+
+	middleware.Log.Infof("成功删除一级目录: {%s}", id)
 }
 
-// 查询文集列表
+// 查询一级目录列表
 func BookList(userId string) []entity.Book {
 	books, err := dao.BookList(middleware.Db, userId)
 	if err != nil {
@@ -142,11 +150,11 @@ func BookList(userId string) []entity.Book {
 	}
 
 	// 将全部加到首位
-	books = append([]entity.Book{{Name: "全部"}}, books...)
+	books = append([]entity.Book{}, books...)
 	return books
 }
 
-// 查询文集
+// 查询一级目录
 func Book(id string) entity.Book {
 	book, err := dao.Book(middleware.Db, id)
 	if err != nil {

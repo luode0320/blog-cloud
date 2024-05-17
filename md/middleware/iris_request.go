@@ -32,18 +32,8 @@ func RequestLogger(ctx iris.Context) {
 		}
 		params = strings.ReplaceAll(params, " ", "")
 	}
-	ctx.Next()
 
-	divider := "────────────────────────────────────────────────────────────────────────────────────────────────────────────────"
-	topDivider := "┌" + divider
-	middleDivider := "├" + divider
-	bottomDivider := "└" + divider
-	outputStr :=
-		"\n" + topDivider +
-			"\n│ 请求地址:" + path + "\n" + middleDivider +
-			"\n│ 请求参数:" + params +
-			"\n" + bottomDivider
-	Log.Infof(outputStr)
+	Log.Infof("请求地址:" + path + "\n" + "请求参数:" + params + "\n")
 
 	// 继续处理请求
 	ctx.Next()

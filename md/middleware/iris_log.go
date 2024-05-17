@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"io"
-	"md/util"
 	"os"
 	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/kataras/golog"
@@ -25,8 +25,7 @@ func InitLog(prefixPath string, logger *golog.Logger) {
 	// 首次执行
 	if lastTime == "" {
 		// 创建目录
-		prefixPath = util.PathCompletion(prefixPath)
-		err := os.MkdirAll(prefixPath, 0777)
+		err := os.MkdirAll(filepath.Join(prefixPath), 0755)
 		if err != nil {
 			panic(err)
 		}

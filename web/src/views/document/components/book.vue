@@ -1,34 +1,39 @@
 <template>
-  <div class="page-book" v-loading="bookLoading" :class="{ 'page-book-shrink': !isStretch }">
-    <div class="mask-view" v-if="loading"></div>
+  <div v-loading="bookLoading" :class="{ 'page-book-shrink': !isStretch }" class="page-book">
+    <div v-if="loading" class="mask-view"></div>
+
     <el-popover v-if="!onlyPreview" :visible="addBookVisible" placement="bottom" trigger="click" width="200px">
-      <el-input v-model="newBookName" placeholder="请输入文集名称" style="margin-right: 10px"></el-input>
+      <el-input v-model="newBookName" placeholder="请输入一级目录" style="margin-right: 10px"></el-input>
       <div style="display: flex; margin-top: 8px; justify-content: flex-end">
-        <el-button @click="addBookCancel" size="small">取消</el-button>
-        <el-button @click="addBookSave" type="primary" size="small">确定</el-button>
+        <el-button size="small" @click="addBookCancel">取消</el-button>
+        <el-button size="small" type="primary" @click="addBookSave">确定</el-button>
       </div>
       <template #reference>
-        <el-button class="create-button" type="warning" size="large" link :icon="Plus" @click="addBookVisible = true">创建文集</el-button>
+        <el-button :icon="Plus" class="create-button" link size="large" type="warning" @click="addBookVisible = true">创建一级目录</el-button>
       </template>
     </el-popover>
-    <el-button v-else class="create-button" type="warning" size="large" link>文集选择</el-button>
+
+    <el-button v-else class="create-button" link size="large" type="warning">一级目录选择</el-button>
+
     <el-scrollbar class="scroll-view">
-      <div class="item-view" :class="currentBookId === item.id ? 'selected' : ''" v-for="item in books" :key="item.id" @click="bookClick(item)">
-        <div class="update-view" v-if="updateBookId && updateBookId === item.id">
-          <el-input v-model="updateBookName" placeholder="请输入文集名称"></el-input>
-          <el-button style="margin-left: 12px" type="success" link :icon="CircleCheckFilled" @click="updateBookSave"></el-button>
-          <el-button type="danger" link :icon="CircleCloseFilled" @click="updateBookCancel"></el-button>
+      <div v-for="item in books" :key="item.id" :class="currentBookId === item.id ? 'selected' : ''" class="item-view" @click="bookClick(item)">
+        <div v-if="updateBookId && updateBookId === item.id" class="update-view">
+          <el-input v-model="updateBookName" placeholder="请输入一级目录"></el-input>
+          <el-button :icon="CircleCheckFilled" link style="margin-left: 12px" type="success" @click="updateBookSave"></el-button>
+          <el-button :icon="CircleCloseFilled" link type="danger" @click="updateBookCancel"></el-button>
         </div>
-        <text-tip :content="item.name" v-else></text-tip>
-        <el-dropdown trigger="click" v-if="!onlyPreview && item.id">
-          <el-icon class="setting-button" @click.stop="() => {}" title="操作"><Tools /></el-icon>
+        <text-tip v-else :content="item.name"></text-tip>
+
+        <el-dropdown v-if="!onlyPreview && item.id" trigger="click">
+          <el-icon class="setting-button" title="操作" @click.stop="() => {}"><Tools /></el-icon>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item style="user-select: none" @click="updateBookClick(item)">修改文集</el-dropdown-item>
-              <el-dropdown-item style="user-select: none" @click="deleteBookClick(item)">删除文集</el-dropdown-item>
+              <el-dropdown-item style="user-select: none" @click="updateBookClick(item)">修改一级目录</el-dropdown-item>
+              <el-dropdown-item style="user-select: none" @click="deleteBookClick(item)">删除一级目录</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+
       </div>
     </el-scrollbar>
   </div>
@@ -75,10 +80,12 @@ onMounted(() => {
 });
 
 /**
- * 查询文集列表
+ * 查询一级目录列表
  */
 const queryBooks = () => {
+  // 点击添加一级目录取消
   addBookCancel();
+  // 点击修改一级目录取消
   updateBookCancel();
   bookLoading.value = true;
   BookApi.list()
@@ -92,7 +99,7 @@ const queryBooks = () => {
 };
 
 /**
- * 点击文集
+ * 点击一级目录
  */
 const bookClick = (book: Book) => {
   if (updateBookId.value) {
@@ -102,12 +109,12 @@ const bookClick = (book: Book) => {
 };
 
 /**
- * 点击添加文集保存
+ * 点击添加一级目录保存
  */
 const addBookSave = () => {
   let name = String(newBookName.value).trim();
   if (!name) {
-    ElMessage.warning("请填写文集名称");
+    ElMessage.warning("请填写一级目录");
     return;
   }
   bookLoading.value = true;
@@ -122,7 +129,7 @@ const addBookSave = () => {
 };
 
 /**
- * 点击添加文集取消
+ * 点击添加一级目录取消
  */
 const addBookCancel = () => {
   addBookVisible.value = false;
@@ -130,7 +137,7 @@ const addBookCancel = () => {
 };
 
 /**
- * 点击修改文集
+ * 点击修改一级目录
  */
 const updateBookClick = (book: Book) => {
   updateBookId.value = book.id;
@@ -138,12 +145,12 @@ const updateBookClick = (book: Book) => {
 };
 
 /**
- * 点击修改文集保存
+ * 点击修改一级目录保存
  */
 const updateBookSave = () => {
   let name = String(updateBookName.value).trim();
   if (!name) {
-    ElMessage.warning("请填写文集名称");
+    ElMessage.warning("请填写一级目录");
     return false;
   }
   bookLoading.value = true;
@@ -158,7 +165,7 @@ const updateBookSave = () => {
 };
 
 /**
- * 点击修改文集取消
+ * 点击修改一级目录取消
  */
 const updateBookCancel = () => {
   updateBookId.value = "";
@@ -166,10 +173,10 @@ const updateBookCancel = () => {
 };
 
 /**
- * 点击删除文集
+ * 点击删除一级目录
  */
 const deleteBookClick = (book: Book) => {
-  ElMessageBox.confirm("是否删除文集：" + book.name + "？", "提示", {
+  ElMessageBox.confirm("是否删除一级目录：" + book.name + "？", "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",

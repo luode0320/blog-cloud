@@ -1,26 +1,26 @@
 <template>
   <div class="page-open-publish">
     <div class="title-view">公开文档</div>
-    <el-table class="table-view" ref="tableRef" :data="tableData" height="100%" stripe border v-loading="tableLoading">
-      <el-table-column prop="name" label="序号" align="center" width="100">
+    <el-table ref="tableRef" v-loading="tableLoading" :data="tableData" border class="table-view" height="100%" stripe>
+      <el-table-column align="center" label="序号" prop="name" width="100">
         <template #default="scope">
           {{ (tableCondition.page.current - 1) * tableCondition.page.size + scope.$index + 1 }}
         </template>
       </el-table-column>
-      <el-table-column prop="name" label="文档名称" align="center" :label-class-name="columnClass.name">
+      <el-table-column :label-class-name="columnClass.name" align="center" label="文档名称" prop="name">
         <template #header="scope">
-          <el-popover v-model:visible="namePopover" width="170" trigger="click" :hide-after="0" @hide="tablePopoverHide">
-            <el-input v-model="tableCondition.condition.name" placeholder="文档名称筛选" clearable @clear="namePopover = false"></el-input>
+          <el-popover v-model:visible="namePopover" :hide-after="0" trigger="click" width="170" @hide="tablePopoverHide">
+            <el-input v-model="tableCondition.condition.name" clearable placeholder="文档名称筛选" @clear="namePopover = false"></el-input>
             <template #reference>
               <div style="cursor: pointer">文档名称</div>
             </template>
           </el-popover>
         </template>
       </el-table-column>
-      <el-table-column prop="type" label="文档类型" align="center" :label-class-name="columnClass.type">
+      <el-table-column :label-class-name="columnClass.type" align="center" label="文档类型" prop="type">
         <template #header="scope">
-          <el-popover v-model:visible="typePopover" width="170" trigger="click" :hide-after="0" @hide="tablePopoverHide">
-            <el-select v-model="tableCondition.condition.type" placeholder="文档类型筛选" clearable @clear="typePopover = false">
+          <el-popover v-model:visible="typePopover" :hide-after="0" trigger="click" width="170" @hide="tablePopoverHide">
+            <el-select v-model="tableCondition.condition.type" clearable placeholder="文档类型筛选" @clear="typePopover = false">
               <el-option label="Markdown" value="md" />
               <el-option label="OpenAPI" value="openApi" />
             </el-select>
@@ -31,46 +31,46 @@
         </template>
         <template #default="scope"> {{ scope.row.type === "md" ? "Markdown" : "OpenAPI" }} </template>
       </el-table-column>
-      <el-table-column prop="bookName" label="文集名称" align="center" :label-class-name="columnClass.bookName">
+      <el-table-column :label-class-name="columnClass.bookName" align="center" label="一级目录" prop="bookName">
         <template #header="scope">
-          <el-popover v-model:visible="bookNamePopover" width="170" trigger="click" :hide-after="0" @hide="tablePopoverHide">
-            <el-input v-model="tableCondition.condition.bookName" placeholder="文集名称筛选" clearable @clear="bookNamePopover = false"></el-input>
+          <el-popover v-model:visible="bookNamePopover" :hide-after="0" trigger="click" width="170" @hide="tablePopoverHide">
+            <el-input v-model="tableCondition.condition.bookName" clearable placeholder="一级目录筛选" @clear="bookNamePopover = false"></el-input>
             <template #reference>
-              <div style="cursor: pointer">文集名称</div>
+              <div style="cursor: pointer">一级目录</div>
             </template>
           </el-popover>
         </template>
       </el-table-column>
-      <el-table-column prop="username" label="作者" align="center" :label-class-name="columnClass.username">
+      <el-table-column :label-class-name="columnClass.username" align="center" label="作者" prop="username">
         <template #header="scope">
-          <el-popover v-model:visible="usernamePopover" width="170" trigger="click" :hide-after="0" @hide="tablePopoverHide">
-            <el-input v-model="tableCondition.condition.username" placeholder="作者筛选" clearable @clear="usernamePopover = false"></el-input>
+          <el-popover v-model:visible="usernamePopover" :hide-after="0" trigger="click" width="170" @hide="tablePopoverHide">
+            <el-input v-model="tableCondition.condition.username" clearable placeholder="作者筛选" @clear="usernamePopover = false"></el-input>
             <template #reference>
               <div style="cursor: pointer">作者</div>
             </template>
           </el-popover>
         </template>
       </el-table-column>
-      <el-table-column prop="createTime" label="创建时间" align="center">
+      <el-table-column align="center" label="创建时间" prop="createTime">
         <template #default="scope"> {{ formatTime(scope.row.createTime, "YYYY-MM-DD HH:mm:ss") }} </template>
       </el-table-column>
-      <el-table-column prop="createTime" label="修改时间" align="center">
+      <el-table-column align="center" label="修改时间" prop="createTime">
         <template #default="scope"> {{ formatTime(scope.row.updateTime, "YYYY-MM-DD HH:mm:ss") }} </template>
       </el-table-column>
-      <el-table-column label="文档地址" align="center" width="160">
+      <el-table-column align="center" label="文档地址" width="160">
         <template #default="scope">
-          <el-button type="primary" text @click="copyClick(scope.row.id)">复制</el-button>
-          <el-button type="primary" text @click="hrefClick(scope.row.id)">跳转</el-button>
+          <el-button text type="primary" @click="copyClick(scope.row.id)">复制</el-button>
+          <el-button text type="primary" @click="hrefClick(scope.row.id)">跳转</el-button>
         </template>
       </el-table-column>
     </el-table>
     <el-pagination
+      v-model:currentPage="tableCondition.page.current"
+      v-model:pageSize="tableCondition.page.size"
+      :pageSizes="[10, 20, 50, 100]"
+      :total="tableTotal"
       background
       layout="total, sizes, prev, pager, next, jumper"
-      :pageSizes="[10, 20, 50, 100]"
-      v-model:pageSize="tableCondition.page.size"
-      v-model:currentPage="tableCondition.page.current"
-      :total="tableTotal"
       @size-change="tablePageSizeChange"
       @current-change="tablePageCurrentChange"
     ></el-pagination>
