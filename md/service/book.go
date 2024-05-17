@@ -113,19 +113,22 @@ func BookUpdate(book entity.Book) {
 
 // 删除一级目录
 func BookDelete(id, userId string) {
+	documents, err := dao.DocumentList(middleware.Db, id, userId)
+	if err != nil {
+		panic(common.NewErr("删除失败", err))
+	}
+
+	if len(documents) > 0 {
+		panic(common.NewError("目录不为空, 无法删除"))
+	}
+
 	tx := middleware.DbW.MustBegin()
 	defer tx.Rollback()
 
 	book := Book(id)
 
 	// 删除
-	err := dao.BookDeleteById(tx, id, userId)
-	if err != nil {
-		panic(common.NewErr("删除失败", err))
-	}
-
-	// 清空文档的bookId
-	err = dao.DocumentClearBookId(tx, id)
+	err = dao.BookDeleteById(tx, id, userId)
 	if err != nil {
 		panic(common.NewErr("删除失败", err))
 	}

@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	"md/model/common"
+	"path/filepath"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -107,13 +108,13 @@ func InitDB() error {
 func initSqlite() error {
 	// 开启数据库文件
 	var err error
-	Db, err = sqlx.Connect("sqlite", common.DataPath+"md.db")
+	Db, err = sqlx.Connect("sqlite", filepath.Join(common.DataPath, "md.db"))
 	if err != nil {
 		Log.Error("开启sqlite数据库文件失败：", err)
 		return err
 	}
 
-	DbW, err = sqlx.Connect("sqlite", common.DataPath+"md.db")
+	DbW, err = sqlx.Connect("sqlite", filepath.Join(common.DataPath, "md.db"))
 	if err != nil {
 		Log.Error("开启sqlite数据库文件失败：", err)
 		return err

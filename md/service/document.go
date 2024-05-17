@@ -55,7 +55,7 @@ func DocumentAdd(document entity.Document) entity.Document {
 		book := Book(document.BookId)
 		// 生成文件
 		filePath := filepath.Join(common.DataPath, common.ResourceName, book.Name)
-		util.CreateFile(filePath, document.Name+entity.MdExt, "")
+		util.CreateFile(filePath, document.Name+entity.MdExt, []byte(""))
 	}()
 
 	middleware.Log.Infof("添加文档成功: {%s}", document.Name)
@@ -127,7 +127,7 @@ func DocumentUpdateContent(document entity.Document) entity.Document {
 		// 将文档写入markdown文件
 		book := Book(doc.BookId)
 		filePath := filepath.Join(common.DataPath, common.ResourceName, book.Name)
-		util.CreateFile(filePath, doc.Name+entity.MdExt, document.Content)
+		util.CreateFile(filePath, doc.Name+entity.MdExt, []byte(document.Content))
 	}()
 
 	middleware.Log.Infof("成功更新文档内容: {%s}", doc.Name)

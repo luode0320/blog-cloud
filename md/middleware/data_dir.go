@@ -2,13 +2,14 @@ package middleware
 
 import (
 	"os"
+	"path/filepath"
 )
 
 // 初始化数据目录
 func InitDataDir(dataPath, resourceName, pictureName, thumbnailName string) error {
-	path := dataPath + resourceName
+	path := filepath.Join(dataPath, resourceName)
 
-	picturePath := path + "/" + pictureName
+	picturePath := filepath.Join(path, pictureName)
 	err := os.MkdirAll(picturePath, 0777)
 	if err != nil {
 		Log.Error("创建图片目录失败：", err)
@@ -17,7 +18,7 @@ func InitDataDir(dataPath, resourceName, pictureName, thumbnailName string) erro
 
 	Log.Infof("创建图片目录：{%s}", picturePath)
 
-	thumbnailPath := path + "/" + thumbnailName
+	thumbnailPath := filepath.Join(path, thumbnailName)
 	err = os.MkdirAll(thumbnailPath, 0777)
 	if err != nil {
 		Log.Error("创建缩略图目录失败：", err)

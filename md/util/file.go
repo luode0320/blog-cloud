@@ -11,7 +11,7 @@ import (
 // 参数 fileName 表示要创建的文件名
 // 参数 content 表示要写入的文件内容
 // 返回可能的错误
-func CreateFile(dirPath string, fileName string, content string) error {
+func CreateFile(dirPath string, fileName string, content []byte) error {
 	if err := CreateDir(dirPath); err != nil {
 		return err
 	}
@@ -23,7 +23,7 @@ func CreateFile(dirPath string, fileName string, content string) error {
 	}
 	defer saveMdFile.Close()
 
-	_, err = saveMdFile.Write([]byte(content))
+	_, err = saveMdFile.Write(content)
 	if err != nil {
 		log.Errorf("写入文件错误: {%s}", err)
 		return err

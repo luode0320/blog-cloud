@@ -20,21 +20,19 @@ var web embed.FS
 func init() {
 	// 解析命令行参数
 	flag.StringVar(&common.Port, "p", "9900", "监听端口")
-	flag.StringVar(&common.LogPath, "log", "./logs", "日志目录，存放近30天的日志")
-	flag.StringVar(&common.DataPath, "data", "./data", "数据目录，存放数据库文件和图片")
+	flag.StringVar(&common.LogPath, "log", "logs", "日志目录，存放近30天的日志")
+	flag.StringVar(&common.DataPath, "data", "data", "数据目录，存放数据库文件和图片")
 	flag.BoolVar(&common.Register, "reg", true, "是否允许注册（即使禁止注册，在没有任何用户的情况时仍可注册）")
 	flag.StringVar(&common.PostgresHost, "pg_host", "159.138.130.23", "postgres主机地址")
 	flag.StringVar(&common.PostgresPort, "pg_port", "15432", "postgres端口")
 	flag.StringVar(&common.PostgresUser, "pg_user", "postgres", "postgres用户")
 	flag.StringVar(&common.PostgresPassword, "pg_password", "123456", "postgres密码")
-	flag.StringVar(&common.PostgresDB, "pg_db", "blog", "postgres数据库名")
+	flag.StringVar(&common.PostgresDB, "pg_db", "blog-dev", "postgres数据库名")
 	flag.Parse()
 
 	// 固定配置
-	common.LogPath = util.PathCompletion(common.LogPath)
-	common.DataPath = util.PathCompletion(common.DataPath)
 	common.BasicTokenKey = "md"
-	common.ResourceName = "admin"
+	common.ResourceName = ""
 	common.PictureName = "picture"
 	common.ThumbnailName = "thumbnail"
 }
@@ -45,9 +43,6 @@ func main() {
 
 	// 初始化日志
 	middleware.InitLog(common.LogPath, app.Logger())
-
-	// 注册自定义的中间件函数，用于打印 HTTP 请求日志
-	app.Use(middleware.RequestLogger)
 
 	// 全局异常恢复
 	app.Use(middleware.GlobalRecover)
@@ -88,7 +83,7 @@ func main() {
 	app.HandleDir("/", http.FS(webFs))
 
 	// 静态资源路由
-	app.HandleDir("/"+common.ResourceName, common.DataPath+common.ResourceName)
+	app.HandleDir("/", "")
 
 	// 启动服务
 	middleware.Log.Infof("启动服务: {%s}", common.Port)

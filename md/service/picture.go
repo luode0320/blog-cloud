@@ -8,7 +8,7 @@ import (
 	"md/model/entity"
 	"md/util"
 	"mime/multipart"
-	"os"
+	"path/filepath"
 	"slices"
 	"time"
 )
@@ -22,10 +22,17 @@ func PicturePage(pageCondition common.PageCondition[interface{}], userId string)
 
 	picturePageResults := []entity.PicturePageResult{}
 	for _, v := range pictures {
-		picturePageResults = append(picturePageResults, entity.PicturePageResult{Picture: v, PicturePrefix: "/" + common.ResourceName + "/" + common.PictureName + "/", ThumbnailPrefix: "/" + common.ResourceName + "/" + common.ThumbnailName + "/"})
+		picturePageResults = append(picturePageResults, entity.PicturePageResult{
+			Picture:         v,
+			PicturePrefix:   "/" + filepath.ToSlash(filepath.Join(common.DataPath, common.ResourceName, common.PictureName)) + "/",
+			ThumbnailPrefix: "/" + filepath.ToSlash(filepath.Join(common.DataPath, common.ResourceName, common.ThumbnailName)) + "/",
+		})
 	}
 
-	pageResult := common.PageResult[entity.PicturePageResult]{Records: picturePageResults, Total: total}
+	pageResult := common.PageResult[entity.PicturePageResult]{
+		Records: picturePageResults,
+		Total:   total,
+	}
 	return pageResult
 }
 
@@ -54,8 +61,8 @@ func PictureDelete(id, userId string) {
 
 	// 如果相同的图片只有一条记录，删除文件
 	if countResult.Count == 1 {
-		os.Remove(common.DataPath + common.ResourceName + "/" + common.PictureName + "/" + picture.Path)
-		os.Remove(common.DataPath + common.ResourceName + "/" + common.ThumbnailName + "/" + picture.Path)
+		util.RemoveFile(filepath.Join(common.DataPath, common.ResourceName, common.PictureName), picture.Path)
+		util.RemoveFile(filepath.Join(common.DataPath, common.ResourceName, common.ThumbnailName), picture.Path)
 	}
 
 	err = tx.Commit()
@@ -115,52 +122,21 @@ func PictureUpload(pictureFile, thumbnailFile multipart.File, pictureInfo, thumb
 	// 生成sha256校验码
 	sha256Str := util.EncryptSHA256(pictureByte)
 
-	// 查询相同大小和校验码的文件
-	pictures, err := dao.PictureBySizeHash(middleware.Db, pictureInfo.Size, sha256Str)
-	if err != nil {
-		panic(common.NewErr("图片上传失败", err))
-	}
-
 	// 生成文件名
 	filename := util.SnowflakeString() + pictureExt
 
 	needAddRecord := true
-	message := "上传成功"
-	if len(pictures) == 0 {
-		// 无相同文件，保存文件
-		savePictureFile, err := os.Create(common.DataPath + common.ResourceName + "/" + common.PictureName + "/" + filename)
-		if err != nil {
-			panic(common.NewErr("图片上传失败", err))
-		}
-		defer savePictureFile.Close()
 
-		_, err = savePictureFile.Write(pictureByte)
-		if err != nil {
-			panic(common.NewErr("图片上传失败", err))
-		}
+	// 保存文件
+	dirPath := filepath.Join(common.DataPath, common.ResourceName, common.PictureName)
+	if err := util.CreateFile(dirPath, filename, pictureByte); err != nil {
+		panic(common.NewErr("图片上传失败", err))
+	}
 
-		// 保存缩略图
-		saveThumbnailFile, err := os.Create(common.DataPath + common.ResourceName + "/" + common.ThumbnailName + "/" + filename)
-		if err != nil {
-			panic(common.NewErr("图片上传失败", err))
-		}
-		defer saveThumbnailFile.Close()
-
-		_, err = saveThumbnailFile.Write(thumbnailByte)
-		if err != nil {
-			panic(common.NewErr("图片上传失败", err))
-		}
-	} else {
-		// 存在相同文件，文件名使用原记录中的名字
-		for _, v := range pictures {
-			filename = v.Path
-			// 判断是否自己也存在相同文件，如存在则不添加记录
-			if v.UserId == userId {
-				needAddRecord = false
-				message = "图片已存在"
-				break
-			}
-		}
+	// 保存缩略图
+	dirPath = filepath.Join(common.DataPath, common.ResourceName, common.ThumbnailName)
+	if err := util.CreateFile(dirPath, filename, thumbnailByte); err != nil {
+		panic(common.NewErr("图片上传失败", err))
 	}
 
 	// 添加记录
@@ -187,7 +163,7 @@ func PictureUpload(pictureFile, thumbnailFile multipart.File, pictureInfo, thumb
 		}
 	}
 
-	path := "/" + common.ResourceName + "/" + common.PictureName + "/" + filename
+	path := "/" + filepath.ToSlash(filepath.Join(common.DataPath, common.ResourceName, common.PictureName, filename))
 	middleware.Log.Infof("成功上传图片: {%s}", path)
-	return path, message
+	return path, "上传成功"
 }

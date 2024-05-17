@@ -18,6 +18,8 @@ func InitRouter(app *iris.Application) {
 	app.PartyFunc("/api", func(api iris.Party) {
 		// 开放接口
 		api.PartyFunc("/open", func(open iris.Party) {
+			open.Use(middleware.RequestLogger)
+
 			open.Get("/doc/get/{id}", DocumentGetPublished)
 			open.Post("/doc/page", DocumentPagePulished)
 		})
@@ -25,6 +27,7 @@ func InitRouter(app *iris.Application) {
 		// token相关接口
 		api.PartyFunc("/token", func(token iris.Party) {
 			token.Use(middleware.TokenAuth)
+			token.Use(middleware.RequestLogger)
 
 			token.Post("/sign-up", SignUp)
 			token.Post("/sign-in", SignIn)
@@ -38,11 +41,13 @@ func InitRouter(app *iris.Application) {
 
 			// 更新密码
 			data.PartyFunc("/user", func(user iris.Party) {
+				user.Use(middleware.RequestLogger)
 				user.Post("/update-password", UserUpdatePassword)
 			})
 
 			// 一级目录: 一级目录
 			data.PartyFunc("/book", func(book iris.Party) {
+				book.Use(middleware.RequestLogger)
 				book.Post("/add", BookAdd)
 				book.Post("/update", BookUpdate)
 				book.Post("/delete", BookDelete)
@@ -51,6 +56,7 @@ func InitRouter(app *iris.Application) {
 
 			// 文档: 二级目录
 			data.PartyFunc("/doc", func(doc iris.Party) {
+				doc.Use(middleware.RequestLogger)
 				doc.Post("/add", DocumentAdd)
 				doc.Post("/update", DocumentUpdate)
 				doc.Post("/update-content", DocumentUpdateContent)
@@ -68,6 +74,7 @@ func InitRouter(app *iris.Application) {
 
 			// 非对称密钥
 			data.PartyFunc("/rsa", func(rsa iris.Party) {
+				rsa.Use(middleware.RequestLogger)
 				rsa.Post("/generate", RSAGenerateKey)
 				rsa.Post("/encrypt", RSAEncrypt)
 				rsa.Post("/decrypt", RSADecrypt)
