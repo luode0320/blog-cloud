@@ -19,7 +19,7 @@ var web embed.FS
 
 func init() {
 	// 解析命令行参数
-	flag.StringVar(&common.Port, "p", "9900", "监听端口")
+	flag.StringVar(&common.Port, "p", "4001", "监听端口")
 	flag.StringVar(&common.LogPath, "log", "logs", "日志目录，存放近30天的日志")
 	flag.StringVar(&common.DataPath, "data", "data", "数据目录，存放数据库文件和图片")
 	flag.BoolVar(&common.Register, "reg", false, "是否允许注册（即使禁止注册，在没有任何用户的情况时仍可注册）")

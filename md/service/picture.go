@@ -125,8 +125,6 @@ func PictureUpload(pictureFile, thumbnailFile multipart.File, pictureInfo, thumb
 	// 生成文件名
 	filename := util.SnowflakeString() + pictureExt
 
-	needAddRecord := true
-
 	// 保存文件
 	dirPath := filepath.Join(common.DataPath, common.ResourceName, common.PictureName)
 	if err := util.CreateFile(dirPath, filename, pictureByte); err != nil {
@@ -140,27 +138,25 @@ func PictureUpload(pictureFile, thumbnailFile multipart.File, pictureInfo, thumb
 	}
 
 	// 添加记录
-	if needAddRecord {
-		tx := middleware.DbW.MustBegin()
-		defer tx.Rollback()
+	tx := middleware.DbW.MustBegin()
+	defer tx.Rollback()
 
-		picture := entity.Picture{}
-		picture.Id = util.SnowflakeString()
-		picture.CreateTime = time.Now().UnixMilli()
-		picture.Name = pictureInfo.Filename
-		picture.Path = filename
-		picture.Hash = sha256Str
-		picture.Size = pictureInfo.Size
-		picture.UserId = userId
-		err = dao.PictureAdd(tx, picture)
-		if err != nil {
-			panic(common.NewErr("图片上传失败", err))
-		}
+	picture := entity.Picture{}
+	picture.Id = util.SnowflakeString()
+	picture.CreateTime = time.Now().UnixMilli()
+	picture.Name = pictureInfo.Filename
+	picture.Path = filename
+	picture.Hash = sha256Str
+	picture.Size = pictureInfo.Size
+	picture.UserId = userId
+	err = dao.PictureAdd(tx, picture)
+	if err != nil {
+		panic(common.NewErr("图片上传失败", err))
+	}
 
-		err = tx.Commit()
-		if err != nil {
-			panic(common.NewErr("图片上传失败", err))
-		}
+	err = tx.Commit()
+	if err != nil {
+		panic(common.NewErr("图片上传失败", err))
 	}
 
 	path := "/" + filepath.ToSlash(filepath.Join(common.DataPath, common.ResourceName, common.PictureName, filename))
