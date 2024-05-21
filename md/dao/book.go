@@ -10,7 +10,7 @@ import (
 
 // 添加一级目录
 func BookAdd(tx *sqlx.Tx, book entity.Book) error {
-	sql := `insert into t_book (id,name,create_time,user_id) values (:id,:name,:create_time,:user_id)`
+	sql := `insert into t_book (id,parent_id,name,create_time,user_id) values (:id,:parent_id,:name,:create_time,:user_id)`
 	_, err := tx.NamedExec(sql, book)
 	return err
 }
@@ -31,7 +31,7 @@ func BookDeleteById(tx *sqlx.Tx, id, userId string) error {
 
 // 查询一级目录列表
 func BookList(db *sqlx.DB, userId string) ([]entity.Book, error) {
-	sql := `select id,name,create_time from t_book where user_id=$1`
+	sql := `select * from t_book where user_id=$1`
 	result := []entity.Book{}
 	err := db.Select(&result, sql, userId)
 	// 按名称升序

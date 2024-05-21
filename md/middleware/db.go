@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS t_document
 CREATE TABLE IF NOT EXISTS t_book
 (
 	id varchar(50) PRIMARY KEY NOT NULL,
+	parent_id varchar(50) NOT NULL,
 	name text NOT NULL,
 	create_time bigint NOT NULL,
 	user_id varchar(50) NOT NULL

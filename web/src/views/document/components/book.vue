@@ -1,31 +1,11 @@
 <template>
+  <!-- 页面加载指示器 -->
   <div v-loading="bookLoading" :class="{ 'page-book-shrink': !isStretch }" class="page-book">
+
+    <!-- 弹出层，用于创建新一级目录 -->
     <div v-if="loading" class="mask-view"></div>
-
-    <!--
-    这段 Vue 代码是用于实现一个弹出框，用于创建新的一级目录。
-    v-if 指令用于根据条件判断是否渲染元素，如果 !onlyPreview 为真，则渲染下面的内容。
-    :visible 属性用于控制弹出框的显示与隐藏，这里使用 addBookVisible 变量来控制。
-    placement 属性用于设置弹出框的位置，这里设置为底部。
-    trigger 属性用于设置触发弹出框的方式，这里设置为点击触发。
-    width 属性用于设置弹出框的宽度。
-
-    el-input 组件用于渲染一个输入框。
-    v-model 指令用于实现双向绑定，将 newBookName 与输入框的值进行绑定。
-    el-button 组件用于渲染一个按钮。
-    @click 事件监听器用于在点击取消按钮时触发 addBookCancel 方法。
-    @click 事件监听器用于在点击确定按钮时触发 addBookSave 方法。
-
-    template 标签用于定义一个模板，这里用于定义弹出框的触发按钮。
-    el-button 组件用于渲染一个按钮。
-    :icon 属性用于设置按钮的图标，这里使用 Plus 图标。
-    class 属性用于设置按钮的类名。
-    link 属性用于设置按钮的样式为链接样式。
-    size 属性用于设置按钮的大小。
-    @click 事件监听器用于在点击按钮时触发 addBookVisible = true，显示弹出框。
-    -->
     <el-popover v-if="!onlyPreview" :visible="addBookVisible" placement="bottom" trigger="click" width="200px">
-
+      <!-- 输入框和确认/取消按钮 -->
       <el-input v-model="newBookName" placeholder="请输入一级目录" style="margin-right: 10px"></el-input>
       <div style="display: flex; margin-top: 8px; justify-content: flex-end">
         <el-button size="small" @click="addBookCancel">取消</el-button>
@@ -40,50 +20,73 @@
 
     </el-popover>
 
+    <!-- 滚动视图容器 -->
     <el-scrollbar class="scroll-view">
-      <!--
-      这段 Vue 代码是用于渲染一个列表，根据 books 数组的内容生成对应的项。
-      v-for 指令用于遍历 books 数组，将数组中的每个元素赋值给 item。
-      :key 指令用于为每个项设置唯一的标识，这里使用 item.id 作为标识。
-      :class 指令用于根据条件动态设置元素的类名，如果 currentBookId 等于 item.id，则设置类名为 'selected'，否则为空字符串。
-      @click 事件监听器用于在点击项时触发 bookClick 方法，并将 item 作为参数传递。
-
-      v-if 指令用于根据条件判断是否渲染元素，如果 updateBookId 存在且等于 item.id，则渲染下面的内容，否则渲染下面的 text-tip 组件。
-      v-model 指令用于实现双向绑定，将 updateBookName 与输入框的值进行绑定。
-      @click 事件监听器用于在点击保存按钮时触发 updateBookSave 方法。
-      @click 事件监听器用于在点击取消按钮时触发 updateBookCancel 方法。
-
-      v-else 指令用于在上面的条件不满足时渲染下面的内容。
-
-      v-if 指令用于根据条件判断是否渲染元素，如果 !onlyPreview 为真且 item.id 存在，则渲染下面的内容。
-      @click.stop 修饰符用于阻止事件冒泡。
-      @click 事件监听器用于在点击设置按钮时触发空函数。
-
-      el-dropdown 组件用于实现下拉菜单的功能。
-      el-icon 组件用于渲染一个图标。
-      :title 属性用于设置图标的标题。
-      @click.stop 修饰符用于阻止事件冒泡。
-      el-dropdown-menu 组件用于渲染下拉菜单的内容。
-      el-dropdown-item 组件用于渲染下拉菜单的项。
-      -->
+      <!-- 循环渲染每一本书籍项 -->
       <div v-for="(item, index) in books" :key="item.id"
            :class="[(currentBookId === '' && index === 0) || currentBookId === item.id ? 'selected' : '', 'item-view']"
            @click="bookClick(item,index)">
 
+
+        <!-- 修改一级目录的输入框和按钮 -->
         <div v-if="updateBookId && updateBookId === item.id" class="update-view">
           <el-input v-model="updateBookName" placeholder="请输入一级目录"></el-input>
           <el-button :icon="CircleCheckFilled" link style="margin-left: 12px" type="success"
                      @click="updateBookSave"></el-button>
           <el-button :icon="CircleCloseFilled" link type="danger" @click="updateBookCancel"></el-button>
         </div>
+        <!-- 若非修改状态则显示书名 -->
         <text-tip v-else :content="item.name"></text-tip>
 
+        <!-- 这里可以设计二级目录的简单展示或操作 -->
+        <el-popover v-if="addSecondLevelVisible && currentBookId === item.id" :visible="addSecondLevelVisible"
+                    placement="bottom" trigger="click"
+                    width="200px">
+          <!-- 输入框和确认/取消按钮 -->
+          <el-input v-model="newSecondLevelName" placeholder="请输入二级目录" style="margin-right: 10px"></el-input>
+          <div style="display: flex; margin-top: 8px; justify-content: flex-end">
+            <el-button size="small" @click="addTwoBookCancel">取消</el-button>
+            <el-button size="small" type="primary" @click="addSecondLevelSave">确定</el-button>
+          </div>
+
+          <template #reference>
+            <el-button link size="large">
+            </el-button>
+          </template>
+        </el-popover>
+
+        <!-- 添加二级目录的展示区 -->
+        <div v-if="currentBookId === item.id">
+          <el-collapse>
+            <el-collapse-item v-for="(secondItem, secondIndex) in twoBooks" :key="secondItem.id"
+                              :title="secondItem.name">
+              <!-- 非预览模式下的操作下拉菜单 -->
+              <el-dropdown v-if="!onlyPreview && item.id" trigger="click">
+                <el-icon class="setting-button" title="操作" @click.stop="() => {}">
+                  <Tools/>
+                </el-icon>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item style="user-select: none" @click="updateBookClick(item)">修改二级目录
+                    </el-dropdown-item>
+                    <el-dropdown-item style="user-select: none" @click="deleteBookClick(item)">删除二级目录
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </el-collapse-item>
+          </el-collapse>
+        </div>
+
+        <!-- 非预览模式下的操作下拉菜单 -->
         <el-dropdown v-if="!onlyPreview && item.id" trigger="click">
-          <el-icon class="setting-button" title="操作" @click.stop="() => {}">
+          <el-icon class="setting-button" title="操作" @click="bookClick(item,index)" @click.stop="() => {}">
             <Tools/>
           </el-icon>
           <template #dropdown>
             <el-dropdown-menu>
+              <el-dropdown-item style="user-select: none" @click="addSecondLevelBookClick(item)">添加二级目录
+              </el-dropdown-item>
               <el-dropdown-item style="user-select: none" @click="updateBookClick(item)">修改一级目录</el-dropdown-item>
               <el-dropdown-item style="user-select: none" @click="deleteBookClick(item)">删除一级目录</el-dropdown-item>
             </el-dropdown-menu>
@@ -99,98 +102,140 @@
 import {ref, Ref, onMounted, watch} from "vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {Plus, Tools, CircleCheckFilled, CircleCloseFilled} from "@element-plus/icons-vue";
+
 import TextTip from "@/components/text-tip";
 import BookApi from "@/api/book";
 
+// 定义响应式数据
 const books: Ref<Book[]> = ref([]);
-const bookLoading = ref(false);
-const currentBookId = ref("");
-const addBookVisible = ref(false);
-const newBookName = ref("");
-const updateBookId = ref("");
-const updateBookName = ref("");
+const twoBooks: Ref<Book[]> = ref([]);
+const bookLoading = ref(false); // 书籍列表加载状态
+const currentBookId = ref(""); // 当前选中的一级目录ID
+const addBookVisible = ref(false); // 添加一级目录弹窗是否显示
+const newBookName = ref(""); // 新增一级目录的名称
+const updateBookId = ref(""); // 正在修改的一级目录ID
+const updateBookName = ref(""); // 修改后的一级目录名称
 
+// 定义响应式数据结构调整，为每个一级目录添加二级目录数组
+
+// 定义二级目录添加相关数据
+const addSecondLevelVisible = ref(false);
+const selectedBookForSecondLevel = ref(null as Book | null);
+const newSecondLevelName = ref('');
+
+// 定义事件发射器
 const emit = defineEmits<{ change: [bookId: string]; books: [bookList: Book[]] }>();
 
 defineProps({
-  onlyPreview: {
+  onlyPreview: { // 是否只预览模式
     type: Boolean,
     default: true,
   },
-  isStretch: {
+  isStretch: { // 页面是否伸展
     type: Boolean,
     default: true,
   },
-  loading: {
+  loading: { // 页面整体加载状态
     type: Boolean,
     default: false,
   },
 });
 
+// 监听currentBookId变化，触发外部change事件
 watch(currentBookId, (val) => {
   emit("change", val);
 });
 
+// 组件挂载后查询所有一级目录
 onMounted(() => {
   queryBooks();
 });
 
-/**
- * 查询一级目录列表
- */
-const queryBooks = () => {
-  // 点击添加一级目录取消，执行 addBookCancel 方法
+// 查询一级目录列表
+const queryBooks = async () => {
+  // 点击添加一级目录取消
   addBookCancel();
+  // 点击添加二级目录取消
+  addTwoBookCancel()
   // 点击修改一级目录取消，执行 updateBookCancel 方法
   updateBookCancel();
-  // 设置书籍加载状态为 true
+  // 开始加载动画
   bookLoading.value = true;
-  // 调用 BookApi.list() 方法获取书籍列表
-  BookApi.list()
-      .then((res) => {
-        // 将获取到的书籍列表数据赋值给 books
-        books.value = res.data;
-        // 触发 books 事件，传递书籍列表数据
-        emit("books", res.data);
+  // 调用API获取书籍列表
+  try {
+    // 调用API获取书籍列表
+    const res = await BookApi.list();
 
-        if (currentBookId.value === '' && books.value.length > 0) {
-          currentBookId.value = books.value[0].id;
-        }
-      })
-      .finally(() => {
-        // 设置书籍加载状态为 false
-        bookLoading.value = false;
-      });
+    // 更新书籍列表
+    books.value = res.data;
+    // 触发books事件传递数据给父组件
+    emit('books', res.data);
+
+    // 如果当前没有选中书籍且存在书籍，则默认选中第一本
+    if (!currentBookId.value && books.value.length) {
+      currentBookId.value = books.value[0].id;
+    }
+  } finally {
+    // 结束加载动画
+    bookLoading.value = false;
+  }
 };
 
-
-/**
- * 点击一级目录
- */
+// 点击一级目录的处理
 const bookClick = (book: Book, index: number) => {
+  addTwoBookCancel()
+  // 如果正在修改目录则不响应点击
   if (updateBookId.value) {
     return;
   }
   currentBookId.value = book.id;
 };
 
-/**
- * 点击添加一级目录保存
- */
+// 添加一级目录保存逻辑
 const addBookSave = () => {
+  // 检查输入是否为空
   let name = String(newBookName.value).trim();
   if (!name) {
     ElMessage.warning("请填写一级目录");
     return;
   }
+  // 开始保存动画
   bookLoading.value = true;
-  BookApi.add({id: "", name: name})
+  BookApi.add({id: "", parentId: "", name: name})
       .then(() => {
         ElMessage.success("创建成功");
         queryBooks();
       })
       .catch(() => {
         bookLoading.value = false;
+      });
+};
+
+// 定义添加二级目录的方法
+const addSecondLevelBookClick = (book: Book) => {
+  selectedBookForSecondLevel.value = book;
+  addSecondLevelVisible.value = true;
+};
+
+const addSecondLevelSave = () => {
+  let name = String(newSecondLevelName.value).trim();
+  if (!name) {
+    ElMessage.warning("请填写二级目录名称");
+    return;
+  }
+
+  bookLoading.value = true;
+  BookApi.add({id: "", parentId: selectedBookForSecondLevel.value.id, name})
+      .then(() => {
+        ElMessage.success("二级目录创建成功");
+        queryBooks(); // 刷新一级和二级目录列表
+      })
+      .catch(() => {
+        bookLoading.value = false;
+      })
+      .finally(() => {
+        addSecondLevelVisible.value = false;
+        newSecondLevelName.value = "";
       });
 };
 
@@ -203,17 +248,17 @@ const addBookCancel = () => {
 };
 
 /**
- * 点击修改一级目录
+ * 点击添加二级目录取消
  */
-const updateBookClick = (book: Book) => {
-  updateBookId.value = book.id;
-  updateBookName.value = book.name;
+const addTwoBookCancel = () => {
+  addSecondLevelVisible.value = false;
+  newSecondLevelName.value = "";
 };
 
 /**
- * 点击添加二级目录
+ * 点击修改一级目录
  */
-const addTwoBookClick = (book: Book) => {
+const updateBookClick = (book: Book) => {
   updateBookId.value = book.id;
   updateBookName.value = book.name;
 };
@@ -228,7 +273,7 @@ const updateBookSave = () => {
     return false;
   }
   bookLoading.value = true;
-  BookApi.update({id: updateBookId.value, name: name})
+  BookApi.update({id: updateBookId.value, parentId: "", name: name})
       .then(() => {
         ElMessage.success("修改成功");
         queryBooks();
