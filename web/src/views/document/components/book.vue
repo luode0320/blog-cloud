@@ -22,77 +22,57 @@
 
     <!-- 滚动视图容器 -->
     <el-scrollbar class="scroll-view">
-      <!-- 循环渲染每一本书籍项 -->
-      <div v-for="(item, index) in books" :key="item.id"
-           :class="[(currentBookId === '' && index === 0) || currentBookId === item.id ? 'selected' : '', 'item-view']"
-           @click="bookClick(item,index)">
+      <div v-for="(item, index) in books" :key="item.id">
+        <!-- 循环渲染每一本书籍项 -->
+        <div v-if="!item.parentId || currentBookId == item.parentId || currentBookId == item.id"
+             :class="[(currentBookId === '' && index === 0) || currentBookId === item.id ? 'selected' : '', 'item-view']"
+             @click="bookClick(item,index)">
 
-
-        <!-- 修改一级目录的输入框和按钮 -->
-        <div v-if="updateBookId && updateBookId === item.id" class="update-view">
-          <el-input v-model="updateBookName" placeholder="请输入一级目录"></el-input>
-          <el-button :icon="CircleCheckFilled" link style="margin-left: 12px" type="success"
-                     @click="updateBookSave"></el-button>
-          <el-button :icon="CircleCloseFilled" link type="danger" @click="updateBookCancel"></el-button>
-        </div>
-        <!-- 若非修改状态则显示书名 -->
-        <text-tip v-else :content="item.name"></text-tip>
-
-        <!-- 这里可以设计二级目录的简单展示或操作 -->
-        <el-popover v-if="addSecondLevelVisible && currentBookId === item.id" :visible="addSecondLevelVisible"
-                    placement="bottom" trigger="click"
-                    width="200px">
-          <!-- 输入框和确认/取消按钮 -->
-          <el-input v-model="newSecondLevelName" placeholder="请输入二级目录" style="margin-right: 10px"></el-input>
-          <div style="display: flex; margin-top: 8px; justify-content: flex-end">
-            <el-button size="small" @click="addTwoBookCancel">取消</el-button>
-            <el-button size="small" type="primary" @click="addSecondLevelSave">确定</el-button>
+          <!-- 修改一级目录的输入框和按钮 -->
+          <div v-if="updateBookId && updateBookId === item.id" class="update-view">
+            <el-input v-model="updateBookName" placeholder="请输入一级目录"></el-input>
+            <el-button :icon="CircleCheckFilled" link style="margin-left: 12px" type="success"
+                       @click="updateBookSave"></el-button>
+            <el-button :icon="CircleCloseFilled" link type="danger" @click="updateBookCancel"></el-button>
           </div>
+          <!-- 若非修改状态则显示书名 -->
+          <text-tip v-else :content="item.name"></text-tip>
 
-          <template #reference>
-            <el-button link size="large">
-            </el-button>
-          </template>
-        </el-popover>
+          <!-- 这里可以设计二级目录的简单展示或操作 -->
+          <el-popover v-if="addSecondLevelVisible && currentBookId === item.id" :visible="addSecondLevelVisible"
+                      placement="bottom" trigger="click"
+                      width="200px">
+            <!-- 输入框和确认/取消按钮 -->
+            <el-input v-model="newSecondLevelName" placeholder="请输入二级目录" style="margin-right: 10px"></el-input>
+            <div style="display: flex; margin-top: 8px; justify-content: flex-end">
+              <el-button size="small" @click="addTwoBookCancel">取消</el-button>
+              <el-button size="small" type="primary" @click="addSecondLevelSave">确定</el-button>
+            </div>
 
-        <!-- 添加二级目录的展示区 -->
-        <div v-if="currentBookId === item.id">
-          <el-collapse>
-            <el-collapse-item v-for="(secondItem, secondIndex) in twoBooks" :key="secondItem.id"
-                              :title="secondItem.name">
-              <!-- 非预览模式下的操作下拉菜单 -->
-              <el-dropdown v-if="!onlyPreview && item.id" trigger="click">
-                <el-icon class="setting-button" title="操作" @click.stop="() => {}">
-                  <Tools/>
-                </el-icon>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item style="user-select: none" @click="updateBookClick(item)">修改二级目录
-                    </el-dropdown-item>
-                    <el-dropdown-item style="user-select: none" @click="deleteBookClick(item)">删除二级目录
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </el-collapse-item>
-          </el-collapse>
+            <template #reference>
+              <el-button link size="large">
+              </el-button>
+            </template>
+          </el-popover>
+
+          <!-- 非预览模式下的操作下拉菜单 -->
+          <el-dropdown v-if="!onlyPreview && item.id" trigger="click">
+            <el-icon class="setting-button" title="操作" @click.stop="() => {}">
+              <Tools/>
+            </el-icon>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item v-if="!item.parentId" style="user-select: none"
+                                  @click="addSecondLevelBookClick(item)">添加二级目录
+                </el-dropdown-item>
+                <el-dropdown-item style="user-select: none" @click="updateBookClick(item)">修改一级目录
+                </el-dropdown-item>
+                <el-dropdown-item style="user-select: none" @click="deleteBookClick(item)">删除一级目录
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
-
-        <!-- 非预览模式下的操作下拉菜单 -->
-        <el-dropdown v-if="!onlyPreview && item.id" trigger="click">
-          <el-icon class="setting-button" title="操作" @click="bookClick(item,index)" @click.stop="() => {}">
-            <Tools/>
-          </el-icon>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item style="user-select: none" @click="addSecondLevelBookClick(item)">添加二级目录
-              </el-dropdown-item>
-              <el-dropdown-item style="user-select: none" @click="updateBookClick(item)">修改一级目录</el-dropdown-item>
-              <el-dropdown-item style="user-select: none" @click="deleteBookClick(item)">删除一级目录</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-
       </div>
     </el-scrollbar>
   </div>
@@ -110,7 +90,9 @@ import BookApi from "@/api/book";
 const books: Ref<Book[]> = ref([]);
 const twoBooks: Ref<Book[]> = ref([]);
 const bookLoading = ref(false); // 书籍列表加载状态
+const currentBook: Ref<Book> = ref(null); // 当前选中的一级目录
 const currentBookId = ref(""); // 当前选中的一级目录ID
+const currentTwoBookId = ref(""); // 当前选中的一级目录ID
 const addBookVisible = ref(false); // 添加一级目录弹窗是否显示
 const newBookName = ref(""); // 新增一级目录的名称
 const updateBookId = ref(""); // 正在修改的一级目录ID
@@ -165,15 +147,17 @@ const queryBooks = async () => {
   try {
     // 调用API获取书籍列表
     const res = await BookApi.list();
-
     // 更新书籍列表
+    // todo 这里既有一个也有二级
+    console.log("res.data:", res.data)
     books.value = res.data;
     // 触发books事件传递数据给父组件
     emit('books', res.data);
 
-    // 如果当前没有选中书籍且存在书籍，则默认选中第一本
+    // 如果当前没有选中目录且存在目录，则默认选中第一个
     if (!currentBookId.value && books.value.length) {
       currentBookId.value = books.value[0].id;
+      currentBook.value = books.value[0];
     }
   } finally {
     // 结束加载动画
@@ -189,6 +173,18 @@ const bookClick = (book: Book, index: number) => {
     return;
   }
   currentBookId.value = book.id;
+  currentBook.value = book;
+};
+
+// 点击二级目录的处理
+const bookTwoClick = (book: Book, index: number) => {
+  addTwoBookCancel()
+  // 如果正在修改目录则不响应点击
+  if (updateBookId.value) {
+    return;
+  }
+  currentBookId.value = book.id;
+  currentBook.value = book;
 };
 
 // 添加一级目录保存逻辑
@@ -292,10 +288,10 @@ const updateBookCancel = () => {
 };
 
 /**
- * 点击删除一级目录
+ * 点击删除目录
  */
 const deleteBookClick = (book: Book) => {
-  ElMessageBox.confirm("是否删除一级目录：" + book.name + "？", "提示", {
+  ElMessageBox.confirm("是否删除目录：" + book.name + "？", "提示", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning",
