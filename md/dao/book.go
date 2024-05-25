@@ -3,6 +3,9 @@ package dao
 import (
 	"github.com/jmoiron/sqlx"
 	"md/model/entity"
+	"sort"
+	"strconv"
+	"strings"
 )
 
 // 添加一级目录
@@ -31,6 +34,7 @@ func BookList(db *sqlx.DB, userId string) ([]entity.Book, error) {
 	sql := `select * from t_book where user_id=$1 and parent_id=''`
 	books := []entity.Book{}
 	err := db.Select(&books, sql, userId)
+	sortBooks(books)
 
 	result := []entity.Book{}
 	// 查询每个根book的所有子集， 并且按顺序排序在根book的后面
@@ -40,6 +44,7 @@ func BookList(db *sqlx.DB, userId string) ([]entity.Book, error) {
 		if err != nil {
 			return result, err
 		}
+		sortBooks(subBooks)
 		result = append(result, subBooks...)
 	}
 
@@ -68,4 +73,24 @@ func Book(db *sqlx.DB, id string) (entity.Book, error) {
 	result := entity.Book{}
 	err := db.Get(&result, sql, id)
 	return result, err
+}
+
+// 自定义目录排序逻辑
+func sortBooks(books []entity.Book) {
+	// 自定义排序逻辑
+	sort.Slice(books, func(i, j int) bool {
+		numA, errA := strconv.Atoi(strings.TrimSpace(books[i].Name)[:2])
+		numB, errB := strconv.Atoi(strings.TrimSpace(books[j].Name)[:2])
+
+		switch {
+		case errA != nil && errB != nil: // 如果两者都不是数字
+			return strings.ToLower(books[i].Name) < strings.ToLower(books[j].Name) // 按照字符串比较
+		case errA != nil: // A不是数字
+			return true // 非数字的元素排在数字元素后面
+		case errB != nil: // B不是数字
+			return false
+		default: // 都是数字
+			return numA < numB
+		}
+	})
 }

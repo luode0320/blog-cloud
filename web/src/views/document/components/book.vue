@@ -99,8 +99,6 @@ const newBookName = ref(""); // 新增一级目录的名称
 const updateBookId = ref(""); // 正在修改的一级目录ID
 const updateBookName = ref(""); // 修改后的一级目录名称
 
-// 定义响应式数据结构调整，为每个一级目录添加二级目录数组
-
 // 定义二级目录添加相关数据
 const addSecondLevelVisible = ref(false);
 const selectedBookForSecondLevel = ref(null as Book | null);
@@ -258,7 +256,7 @@ const updateBookSave = () => {
     return false;
   }
   bookLoading.value = true;
-  BookApi.update({id: updateBookId.value, parentId: "", name: name})
+  BookApi.update({id: updateBookId.value, parentId: currentBook.value.parentId, name: name})
       .then(() => {
         ElMessage.success("修改成功");
         queryBooks();

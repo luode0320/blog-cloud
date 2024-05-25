@@ -5,6 +5,8 @@ import (
 	"md/model/entity"
 	"md/util"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -47,9 +49,7 @@ func DocumentList(db *sqlx.DB, bookId, userId string) ([]entity.Document, error)
 	result := []entity.Document{}
 	err := db.Select(&result, sqlCompletion.GetSql(), sqlCompletion.GetParams()...)
 	// 按名称升序
-	sort.Slice(result, func(i, j int) bool {
-		return util.StringSort(result[i].Name, result[j].Name)
-	})
+	sortDocuments(result)
 	return result, err
 }
 
@@ -116,4 +116,24 @@ func DocumentPagePulished(db *sqlx.DB, pageCondition common.PageCondition[entity
 	}
 
 	return result, countResult.Count, err
+}
+
+// 自定义文档排序逻辑
+func sortDocuments(books []entity.Document) {
+	// 自定义排序逻辑
+	sort.Slice(books, func(i, j int) bool {
+		numA, errA := strconv.Atoi(strings.TrimSpace(books[i].Name)[:2])
+		numB, errB := strconv.Atoi(strings.TrimSpace(books[j].Name)[:2])
+
+		switch {
+		case errA != nil && errB != nil: // 如果两者都不是数字
+			return strings.ToLower(books[i].Name) < strings.ToLower(books[j].Name) // 按照字符串比较
+		case errA != nil: // A不是数字
+			return true // 非数字的元素排在数字元素后面
+		case errB != nil: // B不是数字
+			return false
+		default: // 都是数字
+			return numA < numB
+		}
+	})
 }

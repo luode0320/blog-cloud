@@ -98,8 +98,8 @@ func BookUpdate(book entity.Book) {
 
 	go func() {
 		var rootBook entity.Book
-		if book.ParentId != "" {
-			rootBook = Book(book.ParentId)
+		if oldBook.ParentId != "" {
+			rootBook = Book(oldBook.ParentId)
 		}
 		oldPath := filepath.Join(common.DataPath, common.ResourceName, rootBook.Name, oldBook.Name)
 		newPath := filepath.Join(common.DataPath, common.ResourceName, rootBook.Name, book.Name)
