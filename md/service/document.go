@@ -8,6 +8,7 @@ import (
 	"md/model/entity"
 	"md/util"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -138,9 +139,46 @@ func DocumentUpdateContent(document entity.Document) entity.Document {
 			rootBook = Book(book.ParentId)
 		}
 
+		// 正则表达式模式，匹配图片URL
+		pattern := `\((https?://[^)]*/` + common.PictureName + `/[^"\s]+)\)`
+		re := regexp.MustCompile(pattern)
+
+		// 用于存储替换后的结果
+		var modifiedContent strings.Builder
+
+		lastEnd := 0
+		matches := re.FindAllStringIndex(document.Content, -1)
+		for _, match := range matches {
+			start, end := match[0], match[1]
+
+			// 添加未匹配部分
+			modifiedContent.WriteString(document.Content[lastEnd:start])
+
+			// 处理匹配的图片URL
+			matchStr := document.Content[start:end]
+			splitURL := strings.Split(matchStr, "/"+common.PictureName+"/")
+			if len(splitURL) > 1 {
+				if book.ParentId != "" {
+					modifiedURL := "(../../" + common.PictureName + "/" + strings.Join(splitURL[1:], "")
+					modifiedContent.WriteString(modifiedURL)
+				} else {
+					modifiedURL := "(../" + common.PictureName + "/" + strings.Join(splitURL[1:], "")
+					modifiedContent.WriteString(modifiedURL)
+				}
+			} else {
+				// 如果没有找到/picture，原样保留
+				modifiedContent.WriteString(matchStr)
+			}
+
+			// 更新lastEnd为当前匹配的结束位置
+			lastEnd = end
+		}
+
+		// 添加剩余内容
+		modifiedContent.WriteString(document.Content[lastEnd:])
 		// 将文档写入markdown文件
 		filePath := filepath.Join(common.DataPath, common.ResourceName, rootBook.Name, book.Name)
-		util.CreateFile(filePath, doc.Name+entity.MdExt, []byte(document.Content))
+		util.CreateFile(filePath, doc.Name+entity.MdExt, []byte(modifiedContent.String()))
 	}()
 
 	middleware.Log.Infof("成功更新文档内容: {%s}", doc.Name)
