@@ -1,6 +1,6 @@
 interface Book {
   id: string;
-  parentId: string;
   name: string;
+  parentId: string;
   createTime?: number;
 }

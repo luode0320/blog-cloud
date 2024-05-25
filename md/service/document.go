@@ -14,10 +14,6 @@ import (
 
 // 添加文档
 func DocumentAdd(document entity.Document) entity.Document {
-	if document.BookId == "" {
-		panic(common.NewErr("请先选择的一级目录", errors.New("请先选择的一级目录")))
-	}
-
 	tx := middleware.DbW.MustBegin()
 	defer tx.Rollback()
 
@@ -25,15 +21,15 @@ func DocumentAdd(document entity.Document) entity.Document {
 	if document.Name == "" {
 		panic(common.NewError("文档名称不可为空"))
 	}
-
-	if util.StringLength(document.Name) > 1000 {
-		panic(common.NewError("文档名称过长，请小于1000个字符"))
+	if util.StringLength(document.Name) > 100 {
+		panic(common.NewError("文档名称过长, 请小于100个字符"))
 	}
-
 	if util.StringLength(document.Content) > 10000000 {
 		panic(common.NewError("文档内容过多，请小于1000万个字符"))
 	}
-
+	if document.BookId == "" {
+		panic(common.NewErr("请先选择的目录", errors.New("请先选择的目录")))
+	}
 	if document.Type != entity.DocMd {
 		panic(common.NewError("不支持的文档类型"))
 	}
@@ -53,8 +49,13 @@ func DocumentAdd(document entity.Document) entity.Document {
 
 	go func() {
 		book := Book(document.BookId)
+		var rootBook entity.Book
+		if book.ParentId != "" {
+			rootBook = Book(book.ParentId)
+		}
+
 		// 生成文件
-		filePath := filepath.Join(common.DataPath, common.ResourceName, book.Name)
+		filePath := filepath.Join(common.DataPath, common.ResourceName, rootBook.Name, book.Name)
 		util.CreateFile(filePath, document.Name+entity.MdExt, []byte(""))
 	}()
 
@@ -66,6 +67,8 @@ func DocumentAdd(document entity.Document) entity.Document {
 func DocumentUpdate(document entity.Document) {
 	tx := middleware.DbW.MustBegin()
 	defer tx.Rollback()
+
+	book := Book(document.BookId)
 
 	document.Name = strings.TrimSpace(document.Name)
 	if document.Name == "" {
@@ -92,10 +95,15 @@ func DocumentUpdate(document entity.Document) {
 	}
 
 	go func() {
-		// 将文档写入markdown文件
-		book := Book(document.BookId)
-		dirPath := filepath.Join(common.DataPath, common.ResourceName, book.Name)
+		var rootBook entity.Book
+		if book.ParentId != "" {
+			rootBook = Book(book.ParentId)
+		}
+
+		// 重命名
+		dirPath := filepath.Join(common.DataPath, common.ResourceName, rootBook.Name, book.Name)
 		util.RenameFile(dirPath, doc.Name+entity.MdExt, document.Name+entity.MdExt)
+		return
 	}()
 
 	middleware.Log.Infof("成功更新文档基础信息: {%s}", document.Name)
@@ -124,9 +132,14 @@ func DocumentUpdateContent(document entity.Document) entity.Document {
 	doc := DocumentGet(document.Id, document.UserId)
 
 	go func() {
-		// 将文档写入markdown文件
 		book := Book(doc.BookId)
-		filePath := filepath.Join(common.DataPath, common.ResourceName, book.Name)
+		var rootBook entity.Book
+		if book.ParentId != "" {
+			rootBook = Book(book.ParentId)
+		}
+
+		// 将文档写入markdown文件
+		filePath := filepath.Join(common.DataPath, common.ResourceName, rootBook.Name, book.Name)
 		util.CreateFile(filePath, doc.Name+entity.MdExt, []byte(document.Content))
 	}()
 
@@ -139,17 +152,11 @@ func DocumentDelete(id, userId string) {
 	tx := middleware.DbW.MustBegin()
 	defer tx.Rollback()
 
+	doc := DocumentGet(id, userId)
+
 	err := dao.DocumentDeleteById(tx, id, userId)
 	if err != nil {
 		panic(common.NewErr("删除失败", err))
-	}
-
-	doc := DocumentGet(id, userId)
-	book := entity.Book{}
-	if doc.BookId == "" {
-		book.Name = "其它"
-	} else {
-		book = Book(doc.BookId)
 	}
 
 	err = tx.Commit()
@@ -158,7 +165,14 @@ func DocumentDelete(id, userId string) {
 	}
 
 	go func() {
-		filePath := filepath.Join(common.DataPath, common.ResourceName, book.Name)
+		book := Book(doc.BookId)
+		var rootBook entity.Book
+		if book.ParentId != "" {
+			rootBook = Book(book.ParentId)
+		}
+
+		// 删除文档
+		filePath := filepath.Join(common.DataPath, common.ResourceName, rootBook.Name, book.Name)
 		util.RemoveFile(filePath, doc.Name+entity.MdExt)
 	}()
 

@@ -27,7 +27,7 @@ func BookUpdate(ctx iris.Context) {
 	ctx.JSON(common.NewSuccess("更新成功"))
 }
 
-// 删除一级目录
+// 删除目录
 func BookDelete(ctx iris.Context) {
 	book := entity.Book{}
 	resolveParam(ctx, &book)

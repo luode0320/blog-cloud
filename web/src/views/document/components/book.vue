@@ -22,12 +22,12 @@
 
     <!-- 滚动视图容器 -->
     <el-scrollbar class="scroll-view">
+      <!-- 循环渲染每一本书籍项 -->
       <div v-for="(item, index) in books" :key="item.id">
-        <!-- 循环渲染每一本书籍项 -->
-        <div v-if="!item.parentId || currentBookId == item.parentId || currentBookId == item.id"
-             :class="[(currentBookId === '' && index === 0) || currentBookId === item.id ? 'selected' : '', 'item-view']"
-             @click="bookClick(item,index)">
-
+        <div
+            v-if="!item.parentId || currentBookId == item.parentId || currentBookId == item.id || currentBook.parentId == item.parentId"
+            :class="[(currentBookId === '' && index === 0) || currentBookId === item.id ? 'selected' : '', 'item-view']"
+            @click="bookClick(item,index)">
           <!-- 修改一级目录的输入框和按钮 -->
           <div v-if="updateBookId && updateBookId === item.id" class="update-view">
             <el-input v-model="updateBookName" placeholder="请输入一级目录"></el-input>
@@ -36,14 +36,15 @@
             <el-button :icon="CircleCloseFilled" link type="danger" @click="updateBookCancel"></el-button>
           </div>
           <!-- 若非修改状态则显示书名 -->
-          <text-tip v-else :content="item.name"></text-tip>
+          <text-tip v-else :class="[item.parentId ? 'sub-book' : '']" :content="item.name"></text-tip>
 
           <!-- 这里可以设计二级目录的简单展示或操作 -->
           <el-popover v-if="addSecondLevelVisible && currentBookId === item.id" :visible="addSecondLevelVisible"
                       placement="bottom" trigger="click"
                       width="200px">
             <!-- 输入框和确认/取消按钮 -->
-            <el-input v-model="newSecondLevelName" placeholder="请输入二级目录" style="margin-right: 10px"></el-input>
+            <el-input v-model="newSecondLevelName" placeholder="请输入二级目录"
+                      style="margin-right: 10px"></el-input>
             <div style="display: flex; margin-top: 8px; justify-content: flex-end">
               <el-button size="small" @click="addTwoBookCancel">取消</el-button>
               <el-button size="small" type="primary" @click="addSecondLevelSave">确定</el-button>
@@ -73,7 +74,9 @@
             </template>
           </el-dropdown>
         </div>
+
       </div>
+
     </el-scrollbar>
   </div>
 </template>
@@ -88,11 +91,9 @@ import BookApi from "@/api/book";
 
 // 定义响应式数据
 const books: Ref<Book[]> = ref([]);
-const twoBooks: Ref<Book[]> = ref([]);
 const bookLoading = ref(false); // 书籍列表加载状态
 const currentBook: Ref<Book> = ref(null); // 当前选中的一级目录
 const currentBookId = ref(""); // 当前选中的一级目录ID
-const currentTwoBookId = ref(""); // 当前选中的一级目录ID
 const addBookVisible = ref(false); // 添加一级目录弹窗是否显示
 const newBookName = ref(""); // 新增一级目录的名称
 const updateBookId = ref(""); // 正在修改的一级目录ID
@@ -148,8 +149,6 @@ const queryBooks = async () => {
     // 调用API获取书籍列表
     const res = await BookApi.list();
     // 更新书籍列表
-    // todo 这里既有一个也有二级
-    console.log("res.data:", res.data)
     books.value = res.data;
     // 触发books事件传递数据给父组件
     emit('books', res.data);
@@ -167,17 +166,6 @@ const queryBooks = async () => {
 
 // 点击一级目录的处理
 const bookClick = (book: Book, index: number) => {
-  addTwoBookCancel()
-  // 如果正在修改目录则不响应点击
-  if (updateBookId.value) {
-    return;
-  }
-  currentBookId.value = book.id;
-  currentBook.value = book;
-};
-
-// 点击二级目录的处理
-const bookTwoClick = (book: Book, index: number) => {
   addTwoBookCancel()
   // 如果正在修改目录则不响应点击
   if (updateBookId.value) {
@@ -213,6 +201,7 @@ const addSecondLevelBookClick = (book: Book) => {
   addSecondLevelVisible.value = true;
 };
 
+// 添加二级保存
 const addSecondLevelSave = () => {
   let name = String(newSecondLevelName.value).trim();
   if (!name) {
@@ -312,7 +301,7 @@ const deleteBookClick = (book: Book) => {
   height: 100%;
   min-width: 220px;
   width: 220px;
-  background: #404040;
+  background: #3f3f3f;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -327,7 +316,7 @@ const deleteBookClick = (book: Book) => {
 
   .create-button {
     height: 60px;
-    border-bottom: 1px solid #555 !important;
+    border-bottom: 1px solid #3f3f3f !important;
   }
 
   .el-button--large [class*="el-icon"] + span {
@@ -336,7 +325,7 @@ const deleteBookClick = (book: Book) => {
 
   .scroll-view {
     color: #f2f2f2;
-    font-size: 13px;
+    font-size: 14px;
 
     .item-view {
       display: flex;
@@ -344,7 +333,6 @@ const deleteBookClick = (book: Book) => {
       justify-content: space-between;
       padding: 18px 15px;
       cursor: pointer;
-      border-left: 3px #404040 solid;
       transition: 0.05s;
       border-bottom: 1px solid #555;
 
@@ -354,14 +342,18 @@ const deleteBookClick = (book: Book) => {
       }
     }
 
+    .sub-book {
+      margin-left: 20px; /* 添加左侧外边距 */
+    }
+
     .item-view:hover {
       background: #666;
       border-left-color: #666;
     }
 
     .item-view.selected {
+      color: #f2f2f2;
       background: #666;
-      border-left-color: #e6a23c;
     }
 
     .setting-button {

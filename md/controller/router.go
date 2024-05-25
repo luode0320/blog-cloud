@@ -45,7 +45,7 @@ func InitRouter(app *iris.Application) {
 				user.Post("/update-password", UserUpdatePassword)
 			})
 
-			// 一级目录: 一级目录
+			// 目录
 			data.PartyFunc("/book", func(book iris.Party) {
 				book.Use(middleware.RequestLogger)
 				book.Post("/add", BookAdd)
@@ -54,7 +54,7 @@ func InitRouter(app *iris.Application) {
 				book.Post("/list", BookList)
 			})
 
-			// 文档: 二级目录
+			// 文档
 			data.PartyFunc("/doc", func(doc iris.Party) {
 				doc.Use(middleware.RequestLogger)
 				doc.Post("/add", DocumentAdd)
