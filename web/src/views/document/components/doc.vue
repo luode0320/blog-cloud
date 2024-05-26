@@ -214,8 +214,12 @@ const checkDocChange = () => {
         cancelButtonText: "取消",
         type: "warning",
       })
-          .then(resolve) // 用户确认，继续操作
-          .catch(reject); // 用户取消，中断操作
+          .then(() => {
+            resolve(null);
+          })
+          .catch(() => {
+            reject();
+          });
     } else {
       resolve(null); // 未修改直接通过
     }
@@ -339,8 +343,8 @@ const dialogClose = () => {
   dialog.value.condition.bookId = "";
   dialog.value.condition.type = "md";
   dialog.value.condition.published = false;
-  dialog.value.visible = false;
   dialog.value.isAdd = true;
+  dialog.value.visible = false;
 };
 
 /**

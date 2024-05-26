@@ -136,7 +136,7 @@ watch(docType, (newVal, oldVal) => {
 
 // 组件挂载后执行的逻辑，设置基础URL并尝试从缓存中恢复当前文档
 onMounted(() => {
-  hostUrl.value = host;
+  hostUrl.value = process.env.NODE_ENV === "production" ? location.origin : host;
   DocCache.getDoc().then((res) => {
     if (res) {
       currentDoc.value = res; // 设置从缓存中获取的文档信息
