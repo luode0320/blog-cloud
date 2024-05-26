@@ -106,12 +106,15 @@ func InitDB() error {
 		return err
 	}
 
+	// 创建表结构
+	Db.MustExec(createTableSql)
+
 	if common.RefreshDb {
 		// 清空表
 		Db.MustExec(deleteTableSql)
+		// 创建表结构
+		Db.MustExec(createTableSql)
 	}
-	// 创建表结构
-	Db.MustExec(createTableSql)
 
 	return nil
 }
