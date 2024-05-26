@@ -209,7 +209,7 @@ const publishClick = () => {
   // 标题和菜单样式
 
     .menu-view {
-      margin-left: 2%;
+      margin-left: 50%;
       display: flex;
       align-items: center;
       height: 100%;
