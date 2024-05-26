@@ -3,15 +3,14 @@ package main
 import (
 	"embed"
 	"flag"
+	"github.com/kataras/iris/v12"
 	"io/fs"
 	"md/controller"
 	"md/middleware"
 	"md/model/common"
+	"md/service"
 	"md/util"
 	"net/http"
-	"time"
-
-	"github.com/kataras/iris/v12"
 )
 
 //go:embed web
@@ -28,6 +27,7 @@ func init() {
 	flag.StringVar(&common.PostgresUser, "pg_user", "postgres", "postgres用户")
 	flag.StringVar(&common.PostgresPassword, "pg_password", "123456", "postgres密码")
 	flag.StringVar(&common.PostgresDB, "pg_db", "blog-dev", "postgres数据库名")
+	flag.BoolVar(&common.RefreshDb, "re_db", false, "刷新数据库数据")
 	flag.Parse()
 
 	// 固定配置
@@ -74,7 +74,7 @@ func main() {
 
 	// 网页资源路由, 启用静态文件缓存
 	middleware.Log.Infof("启用静态文件缓存: 30天")
-	app.Use(iris.StaticCache(time.Hour * 720))
+	//app.Use(iris.StaticCache(time.Hour * 720))
 	webFs, err := fs.Sub(web, "web")
 	if err != nil {
 		middleware.Log.Error("初始化网页资源失败：", err)
@@ -83,8 +83,13 @@ func main() {
 	app.HandleDir("/", http.FS(webFs))
 
 	// 静态资源路由
-	app.HandleDir("/", "")
+	app.HandleDir(common.PictureName, common.DataPath+"/"+common.PictureName)
+	app.HandleDir(common.ThumbnailName, common.DataPath+"/"+common.ThumbnailName)
 
+	if common.RefreshDb {
+		middleware.Log.Infof("刷新数据库数据")
+		service.RefreshDb()
+	}
 	// 启动服务
 	middleware.Log.Infof("启动服务: {%s}", common.Port)
 	app.Logger().Error(app.Run(iris.Addr(":" + common.Port)))

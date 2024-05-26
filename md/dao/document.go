@@ -61,6 +61,14 @@ func DocumentGetById(db *sqlx.DB, id, userId string) (entity.Document, error) {
 	return result, err
 }
 
+// 根据name查询文档
+func DocumentGetName(db *sqlx.DB, name, userId string) ([]entity.Document, error) {
+	sql := `select id,name,content,type,published,create_time,update_time,book_id from t_document where name=$1 and user_id=$2`
+	result := []entity.Document{}
+	err := db.Select(&result, sql, name, userId)
+	return result, err
+}
+
 // 清空文档的bookId
 func DocumentClearBookId(tx *sqlx.Tx, bookId string) error {
 	sql := `update t_document set book_id='' where book_id=$1`

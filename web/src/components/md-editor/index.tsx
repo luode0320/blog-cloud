@@ -51,19 +51,19 @@ export default defineComponent({
           codeTheme="github"
           showCodeRowNumber
           mdHeadingId={generateId}
-          defToolbars={
-            <>
-              <NormalToolbar
-                title="导出"
-                onClick={exportClick}
-                trigger={
-                  <div class="md-editor-icon">
-                    <SvgIcon className="icon-download" name="download"></SvgIcon>
-                  </div>
-                }
-              ></NormalToolbar>
-            </>
-          }
+          // defToolbars={
+          //   <>
+          //     <NormalToolbar
+          //       title="导出"
+          //       onClick={exportClick}
+          //       trigger={
+          //         <div class="md-editor-icon">
+          //           <SvgIcon className="icon-download" name="download"></SvgIcon>
+          //         </div>
+          //       }
+          //     ></NormalToolbar>
+          //   </>
+          // }
         />
       );
     };

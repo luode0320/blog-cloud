@@ -24,8 +24,8 @@ func PicturePage(pageCondition common.PageCondition[interface{}], userId string)
 	for _, v := range pictures {
 		picturePageResults = append(picturePageResults, entity.PicturePageResult{
 			Picture:         v,
-			PicturePrefix:   "/" + filepath.ToSlash(filepath.Join(common.DataPath, common.ResourceName, common.PictureName)) + "/",
-			ThumbnailPrefix: "/" + filepath.ToSlash(filepath.Join(common.DataPath, common.ResourceName, common.ThumbnailName)) + "/",
+			PicturePrefix:   "/" + filepath.ToSlash(filepath.Join(common.PictureName)) + "/",
+			ThumbnailPrefix: "/" + filepath.ToSlash(filepath.Join(common.ThumbnailName)) + "/",
 		})
 	}
 
@@ -159,7 +159,7 @@ func PictureUpload(pictureFile, thumbnailFile multipart.File, pictureInfo, thumb
 		panic(common.NewErr("图片上传失败", err))
 	}
 
-	path := "/" + filepath.ToSlash(filepath.Join(common.DataPath, common.ResourceName, common.PictureName, filename))
+	path := "/" + filepath.ToSlash(filepath.Join(common.PictureName, filename))
 	middleware.Log.Infof("成功上传图片: {%s}", path)
 	return path, "上传成功"
 }

@@ -13,6 +13,54 @@ import (
 	"time"
 )
 
+func RefreshDocument(document entity.Document, parentName string) {
+	tx := middleware.DbW.MustBegin()
+	defer tx.Rollback()
+
+	user, err := dao.UserGetByName(middleware.Db, "admin")
+	if err != nil {
+		return
+	}
+
+	document.Id = util.SnowflakeString()
+	document.Type = entity.DocMd
+	document.CreateTime = util.CreateStamp()
+	document.UpdateTime = util.CreateStamp()
+	document.UserId = user.Id
+	document.Name = strings.TrimSpace(document.Name)
+	// 根据名称查询文档是否存在
+	docs, err := dao.DocumentGetName(middleware.Db, document.Name, document.UserId)
+	if err != nil {
+		return
+	}
+	if len(docs) > 0 {
+		return
+	}
+
+	if parentName != "" {
+		// 根据名称查询一目录列表
+		parentName = strings.TrimSpace(parentName)
+		books, err := dao.BookListByName(tx, parentName, document.UserId)
+		if err != nil {
+			return
+		}
+		if len(books) == 0 {
+			return
+		}
+		document.BookId = books[0].Id
+	}
+
+	err = dao.DocumentAdd(tx, document)
+	if err != nil {
+		panic(common.NewErr("添加失败", err))
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		panic(common.NewErr("添加失败", err))
+	}
+}
+
 // 添加文档
 func DocumentAdd(document entity.Document) entity.Document {
 	tx := middleware.DbW.MustBegin()
@@ -35,10 +83,18 @@ func DocumentAdd(document entity.Document) entity.Document {
 		panic(common.NewError("不支持的文档类型"))
 	}
 
+	docs, err := dao.DocumentGetName(middleware.Db, document.Name, document.UserId)
+	if err != nil {
+		panic(common.NewErr("添加失败", err))
+	}
+	if len(docs) > 0 {
+		panic(common.NewError("已存在同名文档"))
+	}
+
 	document.Id = util.SnowflakeString()
 	document.CreateTime = util.CreateStamp()
 	document.UpdateTime = util.CreateStamp()
-	err := dao.DocumentAdd(tx, document)
+	err = dao.DocumentAdd(tx, document)
 	if err != nil {
 		panic(common.NewErr("添加失败", err))
 	}
@@ -58,6 +114,7 @@ func DocumentAdd(document entity.Document) entity.Document {
 		// 生成文件
 		filePath := filepath.Join(common.DataPath, common.ResourceName, rootBook.Name, book.Name)
 		util.CreateFile(filePath, document.Name+entity.MdExt, []byte(""))
+		util.RefreshDir()
 	}()
 
 	middleware.Log.Infof("添加文档成功: {%s}", document.Name)
@@ -104,7 +161,7 @@ func DocumentUpdate(document entity.Document) {
 		// 重命名
 		dirPath := filepath.Join(common.DataPath, common.ResourceName, rootBook.Name, book.Name)
 		util.RenameFile(dirPath, doc.Name+entity.MdExt, document.Name+entity.MdExt)
-		return
+		util.RefreshDir()
 	}()
 
 	middleware.Log.Infof("成功更新文档基础信息: {%s}", document.Name)
@@ -112,8 +169,54 @@ func DocumentUpdate(document entity.Document) {
 
 // 修改文档内容
 func DocumentUpdateContent(document entity.Document) entity.Document {
+	doc := DocumentGet(document.Id, document.UserId)
+	book := Book(doc.BookId)
+	var rootBook entity.Book
+	if book.ParentId != "" {
+		rootBook = Book(book.ParentId)
+	}
+
+	// 正则表达式模式，匹配图片URL
+	pattern := `\((https?://[^)]*/` + common.PictureName + `/[^"\s]+)\)`
+	re := regexp.MustCompile(pattern)
+
+	// 用于存储替换后的结果
+	var modifiedContent strings.Builder
+
+	lastEnd := 0
+	matches := re.FindAllStringIndex(document.Content, -1)
+	for _, match := range matches {
+		start, end := match[0], match[1]
+
+		// 添加未匹配部分
+		modifiedContent.WriteString(document.Content[lastEnd:start])
+
+		// 处理匹配的图片URL
+		matchStr := document.Content[start:end]
+		splitURL := strings.Split(matchStr, "/"+common.PictureName+"/")
+		if len(splitURL) > 1 {
+			if book.ParentId != "" {
+				modifiedURL := "(../../" + common.PictureName + "/" + strings.Join(splitURL[1:], "")
+				modifiedContent.WriteString(modifiedURL)
+			} else {
+				modifiedURL := "(../" + common.PictureName + "/" + strings.Join(splitURL[1:], "")
+				modifiedContent.WriteString(modifiedURL)
+			}
+		} else {
+			// 如果没有找到/picture，原样保留
+			modifiedContent.WriteString(matchStr)
+		}
+
+		// 更新lastEnd为当前匹配的结束位置
+		lastEnd = end
+	}
+
+	// 添加剩余内容
+	modifiedContent.WriteString(document.Content[lastEnd:])
 	tx := middleware.DbW.MustBegin()
 	defer tx.Rollback()
+
+	document.Content = modifiedContent.String()
 
 	if util.StringLength(document.Content) > 10000000 {
 		panic(common.NewError("文档内容过多，请小于1000万个字符"))
@@ -130,59 +233,15 @@ func DocumentUpdateContent(document entity.Document) entity.Document {
 		panic(common.NewErr("更新失败", err))
 	}
 
-	doc := DocumentGet(document.Id, document.UserId)
-
 	go func() {
-		book := Book(doc.BookId)
-		var rootBook entity.Book
-		if book.ParentId != "" {
-			rootBook = Book(book.ParentId)
-		}
-
-		// 正则表达式模式，匹配图片URL
-		pattern := `\((https?://[^)]*/` + common.PictureName + `/[^"\s]+)\)`
-		re := regexp.MustCompile(pattern)
-
-		// 用于存储替换后的结果
-		var modifiedContent strings.Builder
-
-		lastEnd := 0
-		matches := re.FindAllStringIndex(document.Content, -1)
-		for _, match := range matches {
-			start, end := match[0], match[1]
-
-			// 添加未匹配部分
-			modifiedContent.WriteString(document.Content[lastEnd:start])
-
-			// 处理匹配的图片URL
-			matchStr := document.Content[start:end]
-			splitURL := strings.Split(matchStr, "/"+common.PictureName+"/")
-			if len(splitURL) > 1 {
-				if book.ParentId != "" {
-					modifiedURL := "(../../" + common.PictureName + "/" + strings.Join(splitURL[1:], "")
-					modifiedContent.WriteString(modifiedURL)
-				} else {
-					modifiedURL := "(../" + common.PictureName + "/" + strings.Join(splitURL[1:], "")
-					modifiedContent.WriteString(modifiedURL)
-				}
-			} else {
-				// 如果没有找到/picture，原样保留
-				modifiedContent.WriteString(matchStr)
-			}
-
-			// 更新lastEnd为当前匹配的结束位置
-			lastEnd = end
-		}
-
-		// 添加剩余内容
-		modifiedContent.WriteString(document.Content[lastEnd:])
 		// 将文档写入markdown文件
 		filePath := filepath.Join(common.DataPath, common.ResourceName, rootBook.Name, book.Name)
-		util.CreateFile(filePath, doc.Name+entity.MdExt, []byte(modifiedContent.String()))
+		util.CreateFile(filePath, doc.Name+entity.MdExt, []byte(document.Content))
+		util.RefreshDir()
 	}()
 
 	middleware.Log.Infof("成功更新文档内容: {%s}", doc.Name)
-	return doc
+	return document
 }
 
 // 删除文档
@@ -212,6 +271,7 @@ func DocumentDelete(id, userId string) {
 		// 删除文档
 		filePath := filepath.Join(common.DataPath, common.ResourceName, rootBook.Name, book.Name)
 		util.RemoveFile(filePath, doc.Name+entity.MdExt)
+		util.RefreshDir()
 	}()
 
 	middleware.Log.Infof("成功删除文档: {%s}", id)

@@ -11,6 +11,54 @@ import (
 	"time"
 )
 
+func RefreshBook(book entity.Book, parentName string) {
+	tx := middleware.DbW.MustBegin()
+	defer tx.Rollback()
+
+	user, err := dao.UserGetByName(middleware.Db, "admin")
+	if err != nil {
+		return
+	}
+
+	book.Id = util.SnowflakeString()
+	book.CreateTime = time.Now().UnixMilli()
+	book.UserId = user.Id
+
+	// 根据名称查询一目录列表
+	book.Name = strings.TrimSpace(book.Name)
+	books, err := dao.BookListByName(tx, book.Name, book.UserId)
+	if err != nil {
+		return
+	}
+	if len(books) > 0 {
+		return
+	}
+
+	if parentName != "" {
+		// 根据名称查询一目录列表
+		parentName = strings.TrimSpace(parentName)
+		books, err := dao.BookListByName(tx, parentName, book.UserId)
+		if err != nil {
+			return
+		}
+		if len(books) == 0 {
+			return
+		}
+		book.ParentId = books[0].Id
+	}
+
+	// 保存
+	err = dao.BookAdd(tx, book)
+	if err != nil {
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return
+	}
+}
+
 // 添加目录
 func BookAdd(book entity.Book) {
 	tx := middleware.DbW.MustBegin()

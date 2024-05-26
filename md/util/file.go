@@ -1,6 +1,7 @@
 package util
 
 import (
+	"io"
 	"md/middleware"
 	"os"
 	"path/filepath"
@@ -63,4 +64,24 @@ func RemoveFile(filePath string, fileName string) {
 	if err != nil {
 		middleware.Log.Errorf("删除文件失败: {%s}", err)
 	}
+}
+
+// ReadFileContent 函数读取文件内容
+// 参数 filePath 表示文件所在目录路径
+// 返回可能的错误
+func ReadFileContent(filePath string) string {
+	// 使用os.Open打开文件
+	file, err := os.Open(filePath)
+	if err != nil {
+		return ""
+	}
+	defer file.Close()
+
+	// 使用io.ReadAll读取文件内容
+	content, err := io.ReadAll(file)
+	if err != nil {
+		return ""
+	}
+
+	return string(content)
 }

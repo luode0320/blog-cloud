@@ -14,4 +14,5 @@ var (
 	PostgresUser     string // postgres用户
 	PostgresPassword string // postgres密码
 	PostgresDB       string // postgres数据库名
+	RefreshDb        bool   // 刷新数据库数据
 )
