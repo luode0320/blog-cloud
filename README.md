@@ -4,14 +4,14 @@
 
 一个简单的 Markdown 文档编辑服务器
 
-![signIn.png](md%2Fdata%2Fpicture%2FsignIn.png)
-![index.png](md%2Fdata%2Fpicture%2Findex.png)
+![signIn.png](md/data/picture/signIn.png)
+![index.png](md/data/picture/index.png)
 # 为什么要用blog-cloud
 
 - 我已经有一个[blog](https://github.com/luode0320/blog)博客网站, 但是这个网站只能查看不能编辑。
 - 所以我需要一个可以在线编辑md文件的服务, 编辑之后可以通过我自带的博客网站查看。
 
-![blog.png](md%2Fdata%2Fpicture%2Fblog.png)
+![blog.png](md/data/picture/blog.png)
 
 
 # 软件架构
