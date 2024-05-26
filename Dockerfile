@@ -17,7 +17,8 @@ FROM alpine:latest
 COPY --from=go /build/md/md /md/
 COPY /md/data/ /var/data
 ENV reg=false
+ENV re_db=false
 EXPOSE 4001
 RUN chmod +x /md/md
-CMD cp -R /var/data /md && /md/md -p 4001 -log /md/logs -data /md/data -reg=${reg} -pg_host=${pg_host} -pg_port=${pg_port} -pg_user=${pg_user} -pg_password=${pg_password} -pg_db=${pg_db}
+CMD cp -R /var/data /md && cd /md && ./md -p 4001 -reg=${reg} -pg_host=${pg_host} -pg_port=${pg_port} -pg_user=${pg_user} -pg_password=${pg_password} -pg_db=${pg_db} -re_db=${re_db}
 
