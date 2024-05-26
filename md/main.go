@@ -8,7 +8,6 @@ import (
 	"md/controller"
 	"md/middleware"
 	"md/model/common"
-	"md/service"
 	"md/util"
 	"net/http"
 )
@@ -86,10 +85,6 @@ func main() {
 	app.HandleDir(common.PictureName, common.DataPath+"/"+common.PictureName)
 	app.HandleDir(common.ThumbnailName, common.DataPath+"/"+common.ThumbnailName)
 
-	if common.RefreshDb {
-		middleware.Log.Infof("刷新数据库数据")
-		service.RefreshDb()
-	}
 	// 启动服务
 	middleware.Log.Infof("启动服务: {%s}", common.Port)
 	app.Logger().Error(app.Run(iris.Addr(":" + common.Port)))

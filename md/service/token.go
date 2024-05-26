@@ -62,6 +62,13 @@ func SignUp(user entity.User) {
 		panic(common.NewErr("注册失败", err))
 	}
 
+	go func() {
+		if common.RefreshDb && user.Name == "admin" {
+			middleware.Log.Infof("刷新数据库数据")
+			RefreshDb()
+		}
+	}()
+
 	middleware.Log.Infof("注册用户成功: {%s}", user.Name)
 }
 
