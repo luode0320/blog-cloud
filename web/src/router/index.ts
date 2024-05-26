@@ -15,8 +15,8 @@ const routes = [
       { path: "/tool", name: "tool", component: () => import("@/views/tool/index.vue") }, // 工具页面路由
     ],
   },
-  { path: "/open/document", name: "openDocument", component: () => import("@/views/open/doc.vue") }, // 公开文档页面路由
-  { path: "/open/publish", name: "openPublish", component: () => import("@/views/open/publish.vue") }, // 公开发布页面路由
+  // { path: "/open/document", name: "openDocument", component: () => import("@/views/open/doc.vue") }, // 公开文档页面路由
+  // { path: "/open/publish", name: "openPublish", component: () => import("@/views/open/publish.vue") }, // 公开发布页面路由
 ];
 
 // 创建路由实例

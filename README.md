@@ -89,6 +89,8 @@ luode0320/blog-cloud:latest
 http://127.0.0.1:4001/
 ```
 
-# 隐含的功能按钮
+# 隐含的功能
 
-- 收缩边栏：点击左侧博客标题
+- 收缩边栏：点击左上角博客标题
+- md文件: 保存的md文件生成在挂载的 data 目录下, 引用的图片在 picture 目录
+![md.png](md/data/picture/md.png)
