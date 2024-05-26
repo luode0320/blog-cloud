@@ -2,17 +2,22 @@
 
 # 介绍
 
-一个简单的 Markdown、OpenAPI 文档服务器
+一个简单的 Markdown 文档编辑服务器
 
+![signIn.png](md%2Fdata%2Fpicture%2FsignIn.png)
+![index.png](md%2Fdata%2Fpicture%2Findex.png)
 # 为什么要用blog-cloud
 
-- 我已经有一个[blog](https://blog.luode.vip/)博客网站, 但是这个网站只能查看不能编辑。
+- 我已经有一个[blog](https://github.com/luode0320/blog)博客网站, 但是这个网站只能查看不能编辑。
 - 所以我需要一个可以在线编辑md文件的服务, 编辑之后可以通过我自带的博客网站查看。
+
+![blog.png](md%2Fdata%2Fpicture%2Fblog.png)
+
 
 # 软件架构
 
 - go1.21
-- sqlite
+- sqlite / postgres
 - vue3
 
 # 编译步骤
@@ -21,6 +26,7 @@
 - 安装 nodejs 环境
 - 进入目录，添加权限并执行 **build.bat** 或 **build.sh**
 - 编译后的可执行文件在 **./md** 目录下
+- 执行**./md** 目录下的可执行文件
 
 # 命令行参数
 
@@ -33,6 +39,7 @@
 - `-pg_user`：postgres 用户
 - `-pg_password`：postgres 密码
 - `-pg_db`：postgres 数据库名
+- `-re_db`：清空数据库数据, 配合注册admin用户, 可以将data目录下md文件加载到数据库中
 
 ## 数据库选择
 
@@ -54,6 +61,7 @@ cd /usr/local/src/blog-cloud
 
 输入:
 
+sqlite: 内置数据库
 ```sh
 docker run -d \
 --name blog-cloud \
@@ -62,7 +70,7 @@ docker run -d \
 -v /usr/local/src/blog/data:/md/data \
 luode0320/blog-cloud:latest
 ```
-
+postgres: 数据库
 ```shell
 docker run -d \
 --name blog-cloud \
@@ -83,22 +91,4 @@ http://127.0.0.1:4001/
 
 # 隐含的功能按钮
 
-- 编辑模式：“博客”标题
-- 收缩边栏：“博客”标题左侧图标
-- 发布链接：文档列表蓝色倒三角
-- 公开文档列表：登录页“博客”标题
-
-
-# 提交
-
-项目提供自动打包docker一键部署到公网服务器
-
-如不需要, 请注释/删除该文件
-```txt
-.github/workflows/main.yml
-```
-
-# 项目说明
-
-- 一级目录: 属于一级目录
-- 文档: 属于二级目录
+- 收缩边栏：点击左侧博客标题

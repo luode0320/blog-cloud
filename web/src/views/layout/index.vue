@@ -6,7 +6,8 @@
       <!-- 左侧视图，含有标题和菜单 -->
       <div class="left-view">
         <!-- 标题区域，含有一个可点击的图标和博客标题 -->
-        <div :style="isDocument ? 'cursor: pointer' : ''" :title="isDocument ? (isStretch ? '收起侧栏' : '弹出侧栏') : ''"
+        <div :style="isDocument ? 'cursor: pointer' : ''"
+             :title="isDocument ? (isStretch ? '收起侧栏' : '弹出侧栏') : ''"
              class="title-view" @click="iconClick">
           <span>
             <!-- 图标点击事件会根据当前页面状态切换侧边栏显示或隐藏 -->
@@ -21,7 +22,7 @@
         <!-- 菜单项，使用路由链接进行导航 -->
         <div class="menu-view">
           <router-link to="/document">文档</router-link>
-          <router-link to="/picture">图片</router-link>
+          <!--          <router-link to="/picture">图片</router-link>-->
           <router-link to="/tool">工具</router-link>
         </div>
       </div>

@@ -11,7 +11,7 @@ const routes = [
     redirect: "/document", // 重定向到文档页面
     children: [
       { path: "/document", name: "document", component: () => import("@/views/document/index.vue") }, // 文档页面路由
-      { path: "/picture", name: "picture", component: () => import("@/views/picture/index.vue") }, // 图片页面路由
+      // { path: "/picture", name: "picture", component: () => import("@/views/picture/index.vue") }, // 图片页面路由
       { path: "/tool", name: "tool", component: () => import("@/views/tool/index.vue") }, // 工具页面路由
     ],
   },
