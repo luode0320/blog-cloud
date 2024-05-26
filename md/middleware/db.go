@@ -87,6 +87,13 @@ ON "t_user" (
 );
 `
 
+var deleteTableSql = `
+DELETE FROM t_user;
+DELETE FROM t_document;
+DELETE FROM t_book;
+DELETE FROM t_picture;
+`
+
 // 初始化数据库连接
 func InitDB() error {
 	var err error
@@ -99,6 +106,10 @@ func InitDB() error {
 		return err
 	}
 
+	if common.RefreshDb {
+		// 清空表
+		Db.MustExec(deleteTableSql)
+	}
 	// 创建表结构
 	Db.MustExec(createTableSql)
 
